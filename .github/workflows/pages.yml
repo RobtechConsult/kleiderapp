@@ -4,7 +4,7 @@ name: Deploy web preview to GitHub Pages
 
 on:
   push:
-    branches: [main, claude/app-projekt-setup-020ppz]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
