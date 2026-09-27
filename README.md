@@ -30,31 +30,39 @@ Neue Pakete immer mit `npx expo install <paket>` hinzufügen, damit die Versione
 
 ```
 src/
-  app/                 # Screens (jede Datei = Route)
-    _layout.tsx        # Root-Layout: Theme, WardrobeProvider, Tabs
-    index.tsx          # Stylist: KI-Funktionen, Outfit des Tages
-    wardrobe.tsx       # Kleiderschrank: Statistik, Kategorie-Filter, Raster
-    outfits.tsx        # Gespeicherte Outfits
-    profile.tsx        # Stil-Statistiken, Einstellungen
-  components/          # UI-Bausteine (Screen, ItemTile, Tabs, Themed*)
-  constants/theme.ts   # Farben (hell/dunkel), Abstände, Fonts
-  data/                # Beispieldaten
-  store/               # Zustand (Kleiderschrank & Outfits, React Context)
-  types/wardrobe.ts    # Datenmodell: ClothingItem, Outfit, Kategorien
+  app/                   # Screens (jede Datei = Route)
+    _layout.tsx          # Root-Stack: Theme, WardrobeProvider
+    (tabs)/_layout.tsx   # Tab-Leiste: Start · Kleiderschrank · (+) · Outfit · Entdecken
+    (tabs)/index.tsx     # Start: Onboarding "Erstelle deinen Kleiderschrank", Fortschritt 0/5
+    (tabs)/wardrobe.tsx  # Kleiderschrank: Schnellaktionen, Filter, Kategorie-Tabs, Artikel-Raster
+    (tabs)/outfits.tsx   # Outfit: Outfit / Packliste / Kalender
+    (tabs)/discover.tsx  # Entdecken: Outfits zu einem Artikel finden (Demo-Feed)
+    add-item.tsx         # Modal: Artikel per Kamera/Galerie hinzufügen
+    profile.tsx          # Profil & Einstellungen
+  components/            # UI-Bausteine (Tab-Leiste mit +-Menü, Header, Icon, Screen, …)
+  constants/theme.ts     # Farben (hell/dunkel), Abstände, Fonts
+  data/                  # Demo-Daten (Entdecken-Feed)
+  store/                 # Zustand (Kleiderschrank & Outfits, React Context)
+  types/wardrobe.ts      # Datenmodell: ClothingItem, Outfit, Kategorien
 ```
+
+Die Oberfläche orientiert sich an Acloset: Tab-Leiste mit rundem **+** in der Mitte, das ein Menü öffnet (Artikel, Wunschliste, Outfit-Buch, Kalender, Beitrag). Noch nicht umgesetzte Funktionen zeigen "Kommt bald".
 
 ## Roadmap
 
 ### Phase 1: Digitaler Kleiderschrank
-- [x] Grundgerüst mit Tabs (Stylist, Kleiderschrank, Outfits, Profil)
-- [x] Datenmodell und Beispieldaten
-- [ ] Teile per Kamera oder Galerie hinzufügen (`expo-image-picker` / `expo-camera`)
+- [x] Navigation wie Acloset: Start, Kleiderschrank, +-Menü, Outfit, Entdecken
+- [x] Datenmodell
+- [x] Artikel per Kamera oder Galerie hinzufügen (`expo-image-picker`), mit Kategorie, Marke, Farbe
+- [x] Onboarding-Fortschritt (5 Artikel)
 - [ ] Hintergrund automatisch freistellen
 - [ ] Detailansicht und Bearbeiten (Kategorie, Farbe, Saison, Marke)
-- [ ] Lokale Speicherung (z. B. `expo-sqlite`)
+- [ ] Lokale Speicherung (z. B. `expo-sqlite`); aktuell ist alles nach einem Neustart weg
+- [ ] Sortierung, Filter, Wunschliste, Artikel importieren
 
 ### Phase 2: Outfits und Planung
-- [ ] Outfit-Editor: Teile kombinieren und speichern
+- [ ] Outfit-Editor (Outfit-Buch): Teile kombinieren und speichern
+- [ ] Packliste
 - [ ] Kalender und Outfit-Planer
 - [ ] Wetter am Standort für Outfitvorschläge (`expo-location` + Wetter-API)
 - [ ] Tragezähler und Stil-Statistiken
@@ -65,7 +73,7 @@ src/
 - [ ] Outfitvorschläge nach Wetter und Anlass
 - [ ] Stil-Chat
 - [ ] Farbanalyse ("Finde meine Farben"), Fit-Beratung, Stil bewerten
-- [ ] Wunschliste
+- [ ] Entdecken mit echten Beiträgen (Upload, Folgen, Suche nach Artikel/Foto)
 - [ ] Virtuelle Anprobe (später)
 
 > **Wichtig:** API-Schlüssel für KI-Dienste gehören nie in die App, denn alles unter `EXPO_PUBLIC_*` landet im App-Bundle. KI-Aufrufe laufen über ein eigenes Backend.

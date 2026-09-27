@@ -1,17 +1,31 @@
 import type { ReactNode } from 'react';
-import { Platform, ScrollView, StyleSheet } from 'react-native';
+import { ScrollView, StyleSheet, type ViewStyle } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedView } from './themed-view';
 
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { MaxContentWidth, Spacing, type ThemeColor } from '@/constants/theme';
 
-/** Scrollable, safe-area-aware page container used by all tab screens. */
-export function Screen({ children }: { children: ReactNode }) {
+type ScreenProps = {
+  children: ReactNode;
+  /** Set to false when the screen manages its own scrolling. */
+  scroll?: boolean;
+  background?: ThemeColor;
+  contentStyle?: ViewStyle;
+};
+
+/** Safe-area-aware page container used by all tab screens. */
+export function Screen({ children, scroll = true, background, contentStyle }: ScreenProps) {
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView type={background} style={styles.container}>
       <SafeAreaView edges={['top']} style={styles.safeArea}>
-        <ScrollView contentContainerStyle={styles.content}>{children}</ScrollView>
+        {scroll ? (
+          <ScrollView contentContainerStyle={[styles.content, contentStyle]}>{children}</ScrollView>
+        ) : (
+          <ThemedView type={background} style={[styles.content, styles.fill, contentStyle]}>
+            {children}
+          </ThemedView>
+        )}
       </SafeAreaView>
     </ThemedView>
   );
@@ -29,9 +43,9 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: Spacing.three,
-    // The web tab bar floats above the content.
-    paddingTop: Platform.OS === 'web' ? Spacing.six + Spacing.four : Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.four,
     gap: Spacing.four,
+  },
+  fill: {
+    flex: 1,
   },
 });

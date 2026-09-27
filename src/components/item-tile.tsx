@@ -1,40 +1,37 @@
 import { Image } from 'expo-image';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, type ViewStyle } from 'react-native';
 
-import { ThemedText } from './themed-text';
-import { ThemedView } from './themed-view';
+import { Icon } from './icon';
 
-import { Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 import type { ClothingItem } from '@/types/wardrobe';
 
-/** Photo of a clothing item, or a color swatch until a photo exists. */
-export function ItemTile({ item, size = 104 }: { item: ClothingItem; size?: number }) {
+/** Photo of a clothing item; falls back to a color swatch or a placeholder glyph. */
+export function ItemImage({ item, style }: { item: ClothingItem; style?: ViewStyle }) {
+  const theme = useTheme();
+
   return (
-    <View style={{ width: size, gap: Spacing.one }}>
-      <ThemedView type="backgroundElement" style={[styles.image, { height: size }]}>
-        {item.imageUri ? (
-          <Image source={{ uri: item.imageUri }} style={StyleSheet.absoluteFill} contentFit="contain" />
-        ) : (
-          <View style={[styles.swatch, { backgroundColor: item.color }]} />
-        )}
-      </ThemedView>
-      <ThemedText type="small" numberOfLines={1}>
-        {item.name}
-      </ThemedText>
+    <View style={[styles.box, style]}>
+      {item.imageUri ? (
+        <Image source={{ uri: item.imageUri }} style={StyleSheet.absoluteFill} contentFit="contain" />
+      ) : item.color ? (
+        <View style={[styles.swatch, { backgroundColor: item.color }]} />
+      ) : (
+        <Icon ios="tshirt" md="checkroom" size={36} color={theme.textSecondary} />
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  image: {
-    borderRadius: Spacing.three,
+  box: {
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
   },
   swatch: {
-    width: '55%',
-    height: '55%',
-    borderRadius: Spacing.two,
+    width: '60%',
+    height: '60%',
+    borderRadius: 8,
   },
 });

@@ -1,15 +1,19 @@
 import { createContext, useContext, useState, type ReactNode } from 'react';
 
-import { sampleItems, sampleOutfits } from '@/data/sample-wardrobe';
 import type { ClothingItem, Outfit } from '@/types/wardrobe';
+
+type NewItem = Omit<ClothingItem, 'id' | 'createdAt' | 'wearCount'>;
 
 type WardrobeState = {
   items: ClothingItem[];
   outfits: Outfit[];
-  addItem: (item: Omit<ClothingItem, 'id' | 'createdAt' | 'wearCount'>) => void;
+  addItem: (item: NewItem) => void;
   toggleFavorite: (id: string) => void;
   addOutfit: (outfit: Omit<Outfit, 'id' | 'createdAt'>) => void;
 };
+
+/** Items needed before personal styling unlocks (onboarding goal on the start screen). */
+export const ONBOARDING_GOAL = 5;
 
 const WardrobeContext = createContext<WardrobeState | null>(null);
 
@@ -17,8 +21,8 @@ const newId = () => Math.random().toString(36).slice(2, 10);
 
 // In-memory for now; swap for local persistence / backend sync later (see README roadmap).
 export function WardrobeProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<ClothingItem[]>(sampleItems);
-  const [outfits, setOutfits] = useState<Outfit[]>(sampleOutfits);
+  const [items, setItems] = useState<ClothingItem[]>([]);
+  const [outfits, setOutfits] = useState<Outfit[]>([]);
 
   const value: WardrobeState = {
     items,

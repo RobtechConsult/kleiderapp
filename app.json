@@ -9,11 +9,7 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/expo.icon",
-      "bundleIdentifier": "com.robtechconsult.kleiderapp",
-      "infoPlist": {
-        "NSCameraUsageDescription": "Die Kamera wird genutzt, um Kleidungsstücke zu fotografieren.",
-        "NSPhotoLibraryUsageDescription": "Fotos aus der Mediathek werden als Kleidungsstücke importiert."
-      }
+      "bundleIdentifier": "com.robtechconsult.kleiderapp"
     },
     "android": {
       "adaptiveIcon": {
@@ -37,6 +33,13 @@
           "backgroundColor": "#208AEF",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Fotos aus deiner Mediathek werden als Kleidungsstücke importiert.",
+          "cameraPermission": "Die Kamera wird genutzt, um Kleidungsstücke zu fotografieren."
         }
       ]
     ],

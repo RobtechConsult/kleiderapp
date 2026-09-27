@@ -1,32 +1,29 @@
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
+import { comingSoon } from '@/components/app-header';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
 import { useWardrobe } from '@/store/wardrobe-store';
+import { Categories, CategoryLabels } from '@/types/wardrobe';
 
 export default function ProfileScreen() {
-  const { items } = useWardrobe();
-  const mostWorn = [...items].sort((a, b) => b.wearCount - a.wearCount).slice(0, 3);
+  const { items, outfits } = useWardrobe();
+  const byCategory = Categories.map((c) => ({
+    category: c,
+    count: items.filter((i) => i.category === c).length,
+  })).filter((c) => c.count > 0);
 
   return (
     <Screen>
-      <ThemedText type="subtitle">Profil</ThemedText>
-
       <View style={styles.section}>
-        <ThemedText type="smallBold">Stil-Statistiken</ThemedText>
+        <ThemedText type="smallBold">Übersicht</ThemedText>
         <ThemedView type="backgroundElement" style={styles.card}>
-          {mostWorn.map((item) => (
-            <View key={item.id} style={styles.row}>
-              <View style={[styles.dot, { backgroundColor: item.color }]} />
-              <ThemedText type="small" style={styles.grow}>
-                {item.name}
-              </ThemedText>
-              <ThemedText type="small" themeColor="textSecondary">
-                {item.wearCount}× getragen
-              </ThemedText>
-            </View>
+          <Row label="Artikel" value={items.length} />
+          <Row label="Outfits" value={outfits.length} />
+          {byCategory.map((c) => (
+            <Row key={c.category} label={CategoryLabels[c.category]} value={c.count} />
           ))}
         </ThemedView>
       </View>
@@ -34,12 +31,25 @@ export default function ProfileScreen() {
       <View style={styles.section}>
         <ThemedText type="smallBold">Einstellungen</ThemedText>
         <ThemedView type="backgroundElement" style={styles.card}>
-          <ThemedText type="small">Konto & Synchronisierung · bald</ThemedText>
-          <ThemedText type="small">Standort für Wetter · bald</ThemedText>
-          <ThemedText type="small">Wunschliste · bald</ThemedText>
+          {['Konto & Synchronisierung', 'Standort für Wetter', 'Mitteilungen'].map((label) => (
+            <Pressable key={label} onPress={() => comingSoon(label)}>
+              <ThemedText type="small">{label}</ThemedText>
+            </Pressable>
+          ))}
         </ThemedView>
       </View>
     </Screen>
+  );
+}
+
+function Row({ label, value }: { label: string; value: number }) {
+  return (
+    <View style={styles.row}>
+      <ThemedText type="small">{label}</ThemedText>
+      <ThemedText type="small" themeColor="textSecondary">
+        {value}
+      </ThemedText>
+    </View>
   );
 }
 
@@ -50,19 +60,10 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: Spacing.three,
     padding: Spacing.three,
-    gap: Spacing.two,
+    gap: Spacing.three,
   },
   row: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.two,
-  },
-  dot: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-  },
-  grow: {
-    flex: 1,
+    justifyContent: 'space-between',
   },
 });

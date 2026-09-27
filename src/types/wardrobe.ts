@@ -11,14 +11,13 @@ export type Season = 'spring' | 'summer' | 'autumn' | 'winter';
 
 export type ClothingItem = {
   id: string;
-  name: string;
   category: Category;
-  /** Primary color as hex, used for swatches and color analysis. */
-  color: string;
-  seasons: Season[];
   brand?: string;
-  /** Local file URI or remote URL of the (background-removed) photo. */
+  /** Local file URI or remote URL of the photo. */
   imageUri?: string;
+  /** Primary color as hex; shown as a swatch when there is no photo. */
+  color?: string;
+  seasons: Season[];
   favorite?: boolean;
   wearCount: number;
   createdAt: string;
@@ -42,3 +41,5 @@ export const CategoryLabels: Record<Category, string> = {
   bags: 'Taschen',
   accessories: 'Accessoires',
 };
+
+export const Categories = Object.keys(CategoryLabels) as Category[];

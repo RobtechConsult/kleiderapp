@@ -16,6 +16,11 @@ export const Colors = {
     textSecondary: '#60646C',
     accent: '#1F6FEB',
     border: '#E4E4E9',
+    /** Primary buttons, active tab, the "+" button. */
+    primary: '#1C1C1E',
+    onPrimary: '#FFFFFF',
+    /** Lavender tint used for banners and the discover hero area. */
+    tint: '#EEF0F8',
   },
   dark: {
     text: '#ffffff',
@@ -25,6 +30,9 @@ export const Colors = {
     textSecondary: '#B0B4BA',
     accent: '#4C8DFF',
     border: '#2E3135',
+    primary: '#F2F2F4',
+    onPrimary: '#000000',
+    tint: '#1B1C24',
   },
 } as const;
 
@@ -65,5 +73,4 @@ export const Spacing = {
   six: 64,
 } as const;
 
-export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
 export const MaxContentWidth = 800;
