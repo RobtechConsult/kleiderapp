@@ -1,98 +1,99 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SymbolView, type SymbolViewProps } from 'expo-symbols';
+import { Alert, Pressable, StyleSheet, View } from 'react-native';
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
+import { ItemTile } from '@/components/item-tile';
+import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
+import { useWardrobe } from '@/store/wardrobe-store';
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
-  return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
-}
+type StylistFeature = {
+  title: string;
+  icon: SymbolViewProps['name'];
+};
 
-export default function HomeScreen() {
+const FEATURES: StylistFeature[] = [
+  { title: 'Outfitvorschläge', icon: { ios: 'wand.and.stars', android: 'auto_awesome', web: 'auto_awesome' } },
+  { title: 'Stil-Chat', icon: { ios: 'bubble.left.and.bubble.right', android: 'chat', web: 'chat' } },
+  { title: 'Finde meine Farben', icon: { ios: 'paintpalette', android: 'palette', web: 'palette' } },
+  { title: 'Finde meinen Fit', icon: { ios: 'figure.stand', android: 'accessibility', web: 'accessibility' } },
+  { title: 'Stil bewerten', icon: { ios: 'star', android: 'star', web: 'star' } },
+  { title: 'Virtuelle Anprobe', icon: { ios: 'camera.viewfinder', android: 'photo_camera', web: 'photo_camera' } },
+];
+
+export default function StylistScreen() {
+  const theme = useTheme();
+  const { items, outfits } = useWardrobe();
+  const outfitOfTheDay = outfits[0];
+  const outfitItems = outfitOfTheDay
+    ? items.filter((i) => outfitOfTheDay.itemIds.includes(i.id))
+    : [];
+
   return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
+    <Screen>
+      <ThemedText type="subtitle">Hallo 👋</ThemedText>
+
+      <View style={styles.section}>
+        <ThemedText type="smallBold">KI-Stylist</ThemedText>
+        <View style={styles.grid}>
+          {FEATURES.map((f) => (
+            <Pressable
+              key={f.title}
+              style={({ pressed }) => [styles.card, pressed && styles.pressed]}
+              onPress={() => Alert.alert(f.title, 'Kommt bald.')}>
+              <ThemedView type="backgroundElement" style={styles.cardInner}>
+                <SymbolView name={f.icon} tintColor={theme.accent} size={28} />
+                <ThemedText type="small">{f.title}</ThemedText>
+              </ThemedView>
+            </Pressable>
+          ))}
+        </View>
+      </View>
+
+      {outfitOfTheDay && (
+        <View style={styles.section}>
+          <ThemedText type="smallBold">Outfit des Tages</ThemedText>
+          <ThemedText type="small" themeColor="textSecondary">
+            {outfitOfTheDay.name} · Wetter folgt
           </ThemedText>
-        </ThemedView>
-
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
-
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
-
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
+          <View style={styles.row}>
+            {outfitItems.map((item) => (
+              <ItemTile key={item.id} item={item} size={76} />
+            ))}
+          </View>
+        </View>
+      )}
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
+  section: {
+    gap: Spacing.two,
+  },
+  grid: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.two,
   },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
+  card: {
+    width: '48.5%',
   },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
+  cardInner: {
+    borderRadius: Spacing.three,
+    padding: Spacing.three,
+    gap: Spacing.two,
+    minHeight: 96,
+    justifyContent: 'space-between',
   },
-  title: {
-    textAlign: 'center',
+  pressed: {
+    opacity: 0.7,
   },
-  code: {
-    textTransform: 'uppercase',
-  },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
+  row: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.two,
   },
 });

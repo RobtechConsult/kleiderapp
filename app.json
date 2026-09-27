@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "kleiderapp",
+    "name": "Kleiderapp",
     "slug": "kleiderapp",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -8,7 +8,12 @@
     "scheme": "kleiderapp",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "bundleIdentifier": "com.robtechconsult.kleiderapp",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Die Kamera wird genutzt, um Kleidungsstücke zu fotografieren.",
+        "NSPhotoLibraryUsageDescription": "Fotos aus der Mediathek werden als Kleidungsstücke importiert."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -17,7 +22,8 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.robtechconsult.kleiderapp"
     },
     "web": {
       "output": "static",

@@ -1,56 +1,76 @@
-# Welcome to your Expo app 👋
+# Kleiderapp
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+App, um den eigenen Kleiderschrank digital zu speichern und sich mit KI Outfits vorschlagen zu lassen. Die Funktionen orientieren sich an Apps wie *Acloset*.
 
-## Get started
+## Tech-Stack
 
-1. Install dependencies
+- **Expo SDK 57** / React Native 0.86 / React 19 mit TypeScript
+- **Expo Router** für die Navigation, mit nativen Tabs auf iOS und Android und einer eigenen Tab-Leiste im Web
+- Eine Codebasis für iOS, Android und Web
+- Build und Release über **EAS** (`npx eas-cli@latest build`), ohne lokales Xcode oder Android Studio
 
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Loslegen
 
 ```bash
-npm run reset-project
+npm install
+npm start          # Dev-Server; QR-Code mit Expo Go scannen
+npm run ios        # bzw. android / web
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Checks vor jedem Commit:
 
-### Other setup steps
+```bash
+npm run lint
+npm run typecheck
+```
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+Neue Pakete immer mit `npx expo install <paket>` hinzufügen, damit die Versionen zum SDK passen.
 
-## Learn more
+## Projektstruktur
 
-To learn more about developing your project with Expo, look at the following resources:
+```
+src/
+  app/                 # Screens (jede Datei = Route)
+    _layout.tsx        # Root-Layout: Theme, WardrobeProvider, Tabs
+    index.tsx          # Stylist: KI-Funktionen, Outfit des Tages
+    wardrobe.tsx       # Kleiderschrank: Statistik, Kategorie-Filter, Raster
+    outfits.tsx        # Gespeicherte Outfits
+    profile.tsx        # Stil-Statistiken, Einstellungen
+  components/          # UI-Bausteine (Screen, ItemTile, Tabs, Themed*)
+  constants/theme.ts   # Farben (hell/dunkel), Abstände, Fonts
+  data/                # Beispieldaten
+  store/               # Zustand (Kleiderschrank & Outfits, React Context)
+  types/wardrobe.ts    # Datenmodell: ClothingItem, Outfit, Kategorien
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## Roadmap
 
-## Join the community
+### Phase 1: Digitaler Kleiderschrank
+- [x] Grundgerüst mit Tabs (Stylist, Kleiderschrank, Outfits, Profil)
+- [x] Datenmodell und Beispieldaten
+- [ ] Teile per Kamera oder Galerie hinzufügen (`expo-image-picker` / `expo-camera`)
+- [ ] Hintergrund automatisch freistellen
+- [ ] Detailansicht und Bearbeiten (Kategorie, Farbe, Saison, Marke)
+- [ ] Lokale Speicherung (z. B. `expo-sqlite`)
 
-Join our community of developers creating universal apps.
+### Phase 2: Outfits und Planung
+- [ ] Outfit-Editor: Teile kombinieren und speichern
+- [ ] Kalender und Outfit-Planer
+- [ ] Wetter am Standort für Outfitvorschläge (`expo-location` + Wetter-API)
+- [ ] Tragezähler und Stil-Statistiken
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+### Phase 3: KI-Stylist
+- [ ] Backend mit Konto und Sync (z. B. Supabase)
+- [ ] Automatisches Tagging der Fotos (Kategorie, Farbe, Material) per Vision-Modell
+- [ ] Outfitvorschläge nach Wetter und Anlass
+- [ ] Stil-Chat
+- [ ] Farbanalyse ("Finde meine Farben"), Fit-Beratung, Stil bewerten
+- [ ] Wunschliste
+- [ ] Virtuelle Anprobe (später)
+
+> **Wichtig:** API-Schlüssel für KI-Dienste gehören nie in die App, denn alles unter `EXPO_PUBLIC_*` landet im App-Bundle. KI-Aufrufe laufen über ein eigenes Backend.
+
+## Konfiguration
+
+- App-Name und Bundle-IDs (`com.robtechconsult.kleiderapp`) stehen in `app.json`. Vor dem ersten Store-Release prüfen.
+- Die Ordner `ios/` und `android/` werden generiert (Continuous Native Generation) und nicht eingecheckt.
