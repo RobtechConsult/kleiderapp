@@ -19,6 +19,10 @@ export default function RootLayout() {
             name="add-item"
             options={{ title: 'Artikel hinzufügen', presentation: 'modal' }}
           />
+          <Stack.Screen
+            name="create-outfit"
+            options={{ title: 'Outfit erstellen', presentation: 'modal' }}
+          />
           <Stack.Screen name="profile" options={{ title: 'Profil' }} />
         </Stack>
       </WardrobeProvider>

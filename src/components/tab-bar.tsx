@@ -4,13 +4,13 @@ import { useState } from 'react';
 import { Modal, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { comingSoon } from './app-header';
 import { Icon, type IconProps } from './icon';
 import { ThemedText } from './themed-text';
 import { ThemedView } from './themed-view';
 
 import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { comingSoon } from '@/lib/dialogs';
 
 const BAR_HEIGHT = 64;
 const ADD_BUTTON_SIZE = 60;
@@ -117,7 +117,7 @@ function AddMenu({
     {
       title: 'Outfit',
       entries: [
-        { label: 'Zum Outfit-Buch hinzufügen', icon: { ios: 'book', md: 'menu_book' }, onPress: () => comingSoon('Outfit-Buch') },
+        { label: 'Zum Outfit-Buch hinzufügen', icon: { ios: 'book', md: 'menu_book' }, onPress: () => router.push('/create-outfit') },
         { label: 'Zum Kalender hinzufügen', icon: { ios: 'calendar.badge.plus', md: 'calendar_add_on' }, onPress: () => comingSoon('Kalender') },
       ],
     },

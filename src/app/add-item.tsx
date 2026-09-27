@@ -45,12 +45,21 @@ export default function AddItemScreen() {
     if (!result.canceled) setImageUri(result.assets[0].uri);
   }
 
-  function save() {
-    addItem({ category, brand: brand.trim() || undefined, imageUri, color, seasons: [] });
-    router.back();
+  const [saving, setSaving] = useState(false);
+
+  async function save() {
+    setSaving(true);
+    try {
+      await addItem({ category, brand: brand.trim() || undefined, imageUri, color, seasons: [] });
+      router.back();
+    } catch (e) {
+      console.warn(e);
+      Alert.alert('Speichern fehlgeschlagen', 'Das Foto konnte nicht gespeichert werden.');
+      setSaving(false);
+    }
   }
 
-  const canSave = Boolean(imageUri || color);
+  const canSave = Boolean(imageUri || color) && !saving;
 
   return (
     <ThemedView style={styles.container}>
@@ -127,9 +136,9 @@ export default function AddItemScreen() {
             { backgroundColor: theme.primary },
             (!canSave || pressed) && styles.dimmed,
           ]}>
-          <ThemedText style={{ color: theme.onPrimary }}>Speichern</ThemedText>
+          <ThemedText style={{ color: theme.onPrimary }}>{saving ? 'Speichert …' : 'Speichern'}</ThemedText>
         </Pressable>
-        {!canSave && (
+        {!imageUri && !color && (
           <ThemedText type="small" themeColor="textSecondary" style={styles.hint}>
             Füge ein Foto hinzu oder wähle eine Farbe.
           </ThemedText>

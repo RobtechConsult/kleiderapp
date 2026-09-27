@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { AppHeader, comingSoon } from '@/components/app-header';
+import { AppHeader } from '@/components/app-header';
 import { Icon, type IconProps } from '@/components/icon';
 import { ItemImage } from '@/components/item-tile';
 import { ThemedText } from '@/components/themed-text';
@@ -12,6 +12,7 @@ import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useWardrobe } from '@/store/wardrobe-store';
 import { Categories, CategoryLabels, type Category, type ClothingItem } from '@/types/wardrobe';
+import { comingSoon, confirmDestructive } from '@/lib/dialogs';
 
 const QUICK_ACTIONS: { label: string; icon: Pick<IconProps, 'ios' | 'md'> }[] = [
   { label: 'Artikel importieren', icon: { ios: 'square.and.arrow.down', md: 'download' } },
@@ -128,8 +129,20 @@ function CategoryTab({ label, active, onPress }: { label: string; active: boolea
 
 function ItemCell({ item }: { item: ClothingItem }) {
   const theme = useTheme();
+  const { removeItem } = useWardrobe();
+
+  async function askDelete() {
+    const name = item.brand || CategoryLabels[item.category];
+    if (await confirmDestructive('Artikel löschen?', `${name} wird aus deinem Kleiderschrank und allen Outfits entfernt.`)) {
+      removeItem(item.id);
+    }
+  }
+
   return (
-    <View style={[styles.cell, { borderColor: theme.border }]}>
+    <Pressable
+      onLongPress={askDelete}
+      delayLongPress={400}
+      style={[styles.cell, { borderColor: theme.border }]}>
       <ItemImage item={item} style={styles.cellImage} />
       <ThemedText type="small" themeColor="textSecondary" numberOfLines={1}>
         {item.brand || 'Keine Marke'}
@@ -137,7 +150,7 @@ function ItemCell({ item }: { item: ClothingItem }) {
       <ThemedText type="small" themeColor="textSecondary" style={styles.date}>
         {new Date(item.createdAt).toLocaleDateString('de-DE')}
       </ThemedText>
-    </View>
+    </Pressable>
   );
 }
 

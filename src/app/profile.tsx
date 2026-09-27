@@ -1,12 +1,12 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { comingSoon } from '@/components/app-header';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
 import { useWardrobe } from '@/store/wardrobe-store';
 import { Categories, CategoryLabels } from '@/types/wardrobe';
+import { comingSoon } from '@/lib/dialogs';
 
 export default function ProfileScreen() {
   const { items, outfits } = useWardrobe();

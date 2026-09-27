@@ -1,12 +1,13 @@
 import { router } from 'expo-router';
 import type { ReactNode } from 'react';
-import { Alert, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Icon } from './icon';
 import { ThemedText } from './themed-text';
 import { ThemedView } from './themed-view';
 
 import { Spacing } from '@/constants/theme';
+import { comingSoon } from '@/lib/dialogs';
 
 type AppHeaderProps = {
   title?: string;
@@ -18,13 +19,6 @@ type AppHeaderProps = {
   /** Replaces the default calendar / bell / profile buttons. */
   right?: ReactNode;
 };
-
-/** Placeholder for features that are not built yet. */
-export function comingSoon(feature: string) {
-  // Alert.alert is a no-op on react-native-web.
-  if (Platform.OS === 'web') window.alert(`${feature}: Kommt bald.`);
-  else Alert.alert(feature, 'Kommt bald.');
-}
 
 export function AppHeader({ title, left, onTitlePress, showCalendar = true, right }: AppHeaderProps) {
   return (

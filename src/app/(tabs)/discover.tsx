@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { AppHeader, comingSoon, HeaderButton } from '@/components/app-header';
+import { AppHeader, HeaderButton } from '@/components/app-header';
 import { Icon, type IconProps } from '@/components/icon';
 import { ItemImage } from '@/components/item-tile';
 import { ThemedText } from '@/components/themed-text';
@@ -13,6 +13,7 @@ import { discoverFeed, type FeedPost } from '@/data/discover-feed';
 import { useTheme } from '@/hooks/use-theme';
 import { useWardrobe } from '@/store/wardrobe-store';
 import type { Category } from '@/types/wardrobe';
+import { comingSoon } from '@/lib/dialogs';
 
 const CATEGORY_ICONS: Record<Category, Pick<IconProps, 'ios' | 'md'>> = {
   tops: { ios: 'tshirt.fill', md: 'apparel' },

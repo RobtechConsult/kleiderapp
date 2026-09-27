@@ -38,10 +38,12 @@ src/
     (tabs)/outfits.tsx   # Outfit: Outfit / Packliste / Kalender
     (tabs)/discover.tsx  # Entdecken: Outfits zu einem Artikel finden (Demo-Feed)
     add-item.tsx         # Modal: Artikel per Kamera/Galerie hinzufügen
+    create-outfit.tsx    # Modal: Outfit aus Artikeln zusammenstellen
     profile.tsx          # Profil & Einstellungen
   components/            # UI-Bausteine (Tab-Leiste mit +-Menü, Header, Icon, Screen, …)
   constants/theme.ts     # Farben (hell/dunkel), Abstände, Fonts
   data/                  # Demo-Daten (Entdecken-Feed)
+  lib/                   # Speicherung (persistence.ts / .web.ts), Dialoge
   store/                 # Zustand (Kleiderschrank & Outfits, React Context)
   types/wardrobe.ts      # Datenmodell: ClothingItem, Outfit, Kategorien
 ```
@@ -57,11 +59,12 @@ Die Oberfläche orientiert sich an Acloset: Tab-Leiste mit rundem **+** in der M
 - [x] Onboarding-Fortschritt (5 Artikel)
 - [ ] Hintergrund automatisch freistellen
 - [ ] Detailansicht und Bearbeiten (Kategorie, Farbe, Saison, Marke)
-- [ ] Lokale Speicherung (z. B. `expo-sqlite`); aktuell ist alles nach einem Neustart weg
+- [x] Lokale Speicherung: JSON + Fotos im App-Dokumentenordner (`expo-file-system`), im Web `localStorage`
+- [x] Artikel löschen (lange drücken)
 - [ ] Sortierung, Filter, Wunschliste, Artikel importieren
 
 ### Phase 2: Outfits und Planung
-- [ ] Outfit-Editor (Outfit-Buch): Teile kombinieren und speichern
+- [x] Outfit-Buch: Artikel zu Outfits kombinieren, speichern, löschen (lange drücken)
 - [ ] Packliste
 - [ ] Kalender und Outfit-Planer
 - [ ] Wetter am Standort für Outfitvorschläge (`expo-location` + Wetter-API)

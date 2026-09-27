@@ -1,5 +1,5 @@
 import { Image } from 'expo-image';
-import { StyleSheet, View, type ViewStyle } from 'react-native';
+import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
 import { Icon } from './icon';
 
@@ -7,7 +7,7 @@ import { useTheme } from '@/hooks/use-theme';
 import type { ClothingItem } from '@/types/wardrobe';
 
 /** Photo of a clothing item; falls back to a color swatch or a placeholder glyph. */
-export function ItemImage({ item, style }: { item: ClothingItem; style?: ViewStyle }) {
+export function ItemImage({ item, style }: { item: ClothingItem; style?: StyleProp<ViewStyle> }) {
   const theme = useTheme();
 
   return (

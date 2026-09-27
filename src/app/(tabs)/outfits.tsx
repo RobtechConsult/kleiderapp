@@ -1,7 +1,8 @@
+import { router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { AppHeader, comingSoon } from '@/components/app-header';
+import { AppHeader } from '@/components/app-header';
 import { Icon } from '@/components/icon';
 import { ItemImage } from '@/components/item-tile';
 import { Screen } from '@/components/screen';
@@ -11,6 +12,7 @@ import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useWardrobe } from '@/store/wardrobe-store';
 import type { Outfit } from '@/types/wardrobe';
+import { confirmDestructive } from '@/lib/dialogs';
 
 const SEGMENTS = ['Outfit', 'Packliste', 'Kalender'] as const;
 type Segment = (typeof SEGMENTS)[number];
@@ -65,7 +67,7 @@ export default function OutfitsScreen() {
 function IdeaCard() {
   const theme = useTheme();
   return (
-    <Pressable style={styles.card} onPress={() => comingSoon('Outfit erstellen')}>
+    <Pressable style={styles.card} onPress={() => router.push('/create-outfit')}>
       <ThemedView type="backgroundElement" style={styles.cardInner}>
         <View style={[styles.plus, { backgroundColor: theme.backgroundSelected }]}>
           <Icon ios="plus" md="add" size={30} color={theme.textSecondary} />
@@ -77,17 +79,26 @@ function IdeaCard() {
 }
 
 function OutfitCard({ outfit }: { outfit: Outfit }) {
-  const { items } = useWardrobe();
+  const { items, removeOutfit } = useWardrobe();
   const outfitItems = items.filter((i) => outfit.itemIds.includes(i.id)).slice(0, 4);
+
+  async function askDelete() {
+    if (await confirmDestructive('Outfit löschen?', `„${outfit.name}“ wird entfernt.`)) {
+      removeOutfit(outfit.id);
+    }
+  }
+
   return (
-    <View style={styles.card}>
+    <Pressable style={styles.card} onLongPress={askDelete} delayLongPress={400}>
       <ThemedView type="backgroundElement" style={[styles.cardInner, styles.collage]}>
         {outfitItems.map((item) => (
           <ItemImage key={item.id} item={item} style={styles.collageItem} />
         ))}
       </ThemedView>
-      <ThemedText type="small">{outfit.name}</ThemedText>
-    </View>
+      <ThemedText type="small" numberOfLines={1}>
+        {outfit.name}
+      </ThemedText>
+    </Pressable>
   );
 }
 

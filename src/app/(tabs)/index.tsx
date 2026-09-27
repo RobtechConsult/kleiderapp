@@ -12,7 +12,7 @@ import { useTheme } from '@/hooks/use-theme';
 import { ONBOARDING_GOAL, useWardrobe } from '@/store/wardrobe-store';
 
 export default function StartScreen() {
-  const { items } = useWardrobe();
+  const { items, ready } = useWardrobe();
   const unlocked = items.length >= ONBOARDING_GOAL;
 
   return (
@@ -48,7 +48,7 @@ export default function StartScreen() {
         )}
       </ScrollView>
 
-      {!unlocked && <OnboardingCard count={items.length} />}
+      {ready && !unlocked && <OnboardingCard count={items.length} />}
     </Screen>
   );
 }
