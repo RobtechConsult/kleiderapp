@@ -20,6 +20,8 @@ export type ClothingItem = {
   seasons: Season[];
   favorite?: boolean;
   wearCount: number;
+  /** ISO date of the last time it was marked as worn. */
+  lastWornAt?: string;
   createdAt: string;
 };
 
@@ -43,3 +45,12 @@ export const CategoryLabels: Record<Category, string> = {
 };
 
 export const Categories = Object.keys(CategoryLabels) as Category[];
+
+export const SeasonLabels: Record<Season, string> = {
+  spring: 'Frühling',
+  summer: 'Sommer',
+  autumn: 'Herbst',
+  winter: 'Winter',
+};
+
+export const Seasons = Object.keys(SeasonLabels) as Season[];

@@ -140,6 +140,8 @@ function ItemCell({ item }: { item: ClothingItem }) {
 
   return (
     <Pressable
+      accessibilityLabel={item.brand || CategoryLabels[item.category]}
+      onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })}
       onLongPress={askDelete}
       delayLongPress={400}
       style={[styles.cell, { borderColor: theme.border }]}>

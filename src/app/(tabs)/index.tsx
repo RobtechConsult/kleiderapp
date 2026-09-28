@@ -39,9 +39,13 @@ export default function StartScreen() {
             <ThemedText type="smallBold">Zuletzt hinzugefügt</ThemedText>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.recentRow}>
               {items.slice(0, 10).map((item) => (
-                <ThemedView key={item.id} type="backgroundElement" style={styles.recentItem}>
-                  <ItemImage item={item} style={StyleSheet.absoluteFill} />
-                </ThemedView>
+                <Pressable
+                  key={item.id}
+                  onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })}>
+                  <ThemedView type="backgroundElement" style={styles.recentItem}>
+                    <ItemImage item={item} style={StyleSheet.absoluteFill} />
+                  </ThemedView>
+                </Pressable>
               ))}
             </ScrollView>
           </View>

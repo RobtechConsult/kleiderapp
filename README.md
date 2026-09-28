@@ -39,6 +39,8 @@ src/
     (tabs)/discover.tsx  # Entdecken: Outfits zu einem Artikel finden (Demo-Feed)
     add-item.tsx         # Modal: Artikel per Kamera/Galerie hinzufügen
     create-outfit.tsx    # Modal: Outfit aus Artikeln zusammenstellen
+    item/[id]/index.tsx  # Artikel-Detailansicht
+    item/[id]/edit.tsx   # Modal: Artikel bearbeiten (gleiches Formular wie Hinzufügen)
     profile.tsx          # Profil & Einstellungen
   components/            # UI-Bausteine (Tab-Leiste mit +-Menü, Header, Icon, Screen, …)
   constants/theme.ts     # Farben (hell/dunkel), Abstände, Fonts
@@ -58,7 +60,8 @@ Die Oberfläche orientiert sich an Acloset: Tab-Leiste mit rundem **+** in der M
 - [x] Artikel per Kamera oder Galerie hinzufügen (`expo-image-picker`), mit Kategorie, Marke, Farbe
 - [x] Onboarding-Fortschritt (5 Artikel)
 - [ ] Hintergrund automatisch freistellen
-- [ ] Detailansicht und Bearbeiten (Kategorie, Farbe, Saison, Marke)
+- [x] Detailansicht: Favorit, "Heute getragen"-Zähler, Outfits mit diesem Artikel, Löschen
+- [x] Bearbeiten (Foto, Kategorie, Marke, Farbe, Saison)
 - [x] Lokale Speicherung: JSON + Fotos im App-Dokumentenordner (`expo-file-system`), im Web `localStorage`
 - [x] Artikel löschen (lange drücken)
 - [ ] Sortierung, Filter, Wunschliste, Artikel importieren
@@ -68,7 +71,7 @@ Die Oberfläche orientiert sich an Acloset: Tab-Leiste mit rundem **+** in der M
 - [ ] Packliste
 - [ ] Kalender und Outfit-Planer
 - [ ] Wetter am Standort für Outfitvorschläge (`expo-location` + Wetter-API)
-- [ ] Tragezähler und Stil-Statistiken
+- [ ] Stil-Statistiken (Tragezähler ist schon da)
 
 ### Phase 3: KI-Stylist
 - [ ] Backend mit Konto und Sync (z. B. Supabase)

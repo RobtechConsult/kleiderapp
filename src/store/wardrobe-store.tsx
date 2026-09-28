@@ -12,8 +12,11 @@ type WardrobeState = {
   items: ClothingItem[];
   outfits: Outfit[];
   addItem: (item: NewItem) => Promise<void>;
+  updateItem: (id: string, changes: Partial<NewItem>) => Promise<void>;
   removeItem: (id: string) => void;
   toggleFavorite: (id: string) => void;
+  /** Increments the wear count and remembers today as the last wear date. */
+  markWorn: (id: string) => void;
   addOutfit: (outfit: NewOutfit) => void;
   removeOutfit: (id: string) => void;
 };
@@ -57,6 +60,17 @@ export function WardrobeProvider({ children }: { children: ReactNode }) {
         ...prev,
       ]);
     },
+    updateItem: async (id, changes) => {
+      const current = items.find((i) => i.id === id);
+      if (!current) return;
+      let { imageUri } = current;
+      if ('imageUri' in changes && changes.imageUri !== current.imageUri) {
+        // New file name per photo, so image caches never show the old one.
+        imageUri = changes.imageUri ? await persistPhoto(changes.imageUri, `${id}-${Date.now()}`) : undefined;
+        deletePhoto(current.imageUri);
+      }
+      setItems((prev) => prev.map((i) => (i.id === id ? { ...i, ...changes, imageUri } : i)));
+    },
     removeItem: (id) => {
       deletePhoto(items.find((i) => i.id === id)?.imageUri);
       setItems((prev) => prev.filter((i) => i.id !== id));
@@ -68,6 +82,12 @@ export function WardrobeProvider({ children }: { children: ReactNode }) {
     },
     toggleFavorite: (id) =>
       setItems((prev) => prev.map((i) => (i.id === id ? { ...i, favorite: !i.favorite } : i))),
+    markWorn: (id) =>
+      setItems((prev) =>
+        prev.map((i) =>
+          i.id === id ? { ...i, wearCount: i.wearCount + 1, lastWornAt: new Date().toISOString() } : i,
+        ),
+      ),
     addOutfit: (outfit) =>
       setOutfits((prev) => [{ ...outfit, id: newId(), createdAt: new Date().toISOString() }, ...prev]),
     removeOutfit: (id) => setOutfits((prev) => prev.filter((o) => o.id !== id)),
