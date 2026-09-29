@@ -4,11 +4,13 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { AppHeader } from '@/components/app-header';
 import { Icon } from '@/components/icon';
 import { ItemImage } from '@/components/item-tile';
+import { OutfitCollage } from '@/components/outfit-collage';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { todayKey } from '@/lib/dates';
 import { ONBOARDING_GOAL, useWardrobe } from '@/store/wardrobe-store';
 
 export default function StartScreen() {
@@ -23,6 +25,8 @@ export default function StartScreen() {
         style={styles.grow}
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}>
+        <TodayCard />
+
         <View>
           <ThemedText type="smallBold" style={styles.heading}>
             Erstelle deinen Kleiderschrank
@@ -54,6 +58,32 @@ export default function StartScreen() {
 
       {ready && !unlocked && <OnboardingCard count={items.length} />}
     </Screen>
+  );
+}
+
+/** Today's planned outfit from the calendar, if any. */
+function TodayCard() {
+  const theme = useTheme();
+  const { calendar, outfits } = useWardrobe();
+  const entry = calendar[todayKey()];
+  const outfit = entry && outfits.find((o) => o.id === entry.outfitId);
+  if (!outfit) return null;
+
+  return (
+    <Pressable onPress={() => router.push('/calendar')}>
+      <ThemedView type="tint" style={styles.today}>
+        <OutfitCollage outfit={outfit} style={styles.todayCollage} />
+        <View style={styles.grow}>
+          <ThemedText type="small" themeColor="textSecondary">
+            Heute geplant{entry.worn ? ' · getragen' : ''}
+          </ThemedText>
+          <ThemedText type="smallBold" numberOfLines={2}>
+            {outfit.name}
+          </ThemedText>
+        </View>
+        <Icon ios="chevron.right" md="chevron_right" color={theme.textSecondary} />
+      </ThemedView>
+    </Pressable>
   );
 }
 
@@ -119,6 +149,16 @@ const styles = StyleSheet.create({
   scroll: {
     gap: Spacing.three,
     paddingBottom: Spacing.three,
+  },
+  today: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.three,
+    padding: Spacing.three,
+    borderRadius: Spacing.four,
+  },
+  todayCollage: {
+    width: 64,
   },
   heading: {
     fontSize: 20,

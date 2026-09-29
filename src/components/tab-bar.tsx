@@ -118,7 +118,7 @@ function AddMenu({
       title: 'Outfit',
       entries: [
         { label: 'Zum Outfit-Buch hinzufügen', icon: { ios: 'book', md: 'menu_book' }, onPress: () => router.push('/create-outfit') },
-        { label: 'Zum Kalender hinzufügen', icon: { ios: 'calendar.badge.plus', md: 'calendar_add_on' }, onPress: () => comingSoon('Kalender') },
+        { label: 'Zum Kalender hinzufügen', icon: { ios: 'calendar.badge.plus', md: 'calendar_add_on' }, onPress: () => router.push('/plan-outfit') },
       ],
     },
     {

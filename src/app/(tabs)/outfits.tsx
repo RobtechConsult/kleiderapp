@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { AppHeader } from '@/components/app-header';
 import { Icon } from '@/components/icon';
+import { OutfitCalendar } from '@/components/outfit-calendar';
 import { ItemImage } from '@/components/item-tile';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
@@ -57,7 +58,9 @@ export default function OutfitsScreen() {
           <Empty text="Plane, was du auf Reisen mitnimmst." />
         )}
         {segment === 'Kalender' && (
-          <Empty text="Plane deine Outfits für die kommenden Tage." />
+          <View style={styles.calendar}>
+            <OutfitCalendar />
+          </View>
         )}
       </View>
     </Screen>
@@ -162,6 +165,9 @@ const styles = StyleSheet.create({
   collageItem: {
     width: '50%',
     height: '50%',
+  },
+  calendar: {
+    width: '100%',
   },
   empty: {
     paddingVertical: Spacing.five,

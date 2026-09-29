@@ -29,10 +29,18 @@ export type Outfit = {
   id: string;
   name: string;
   itemIds: string[];
-  /** ISO date the outfit is planned for, if any. */
-  plannedFor?: string;
   createdAt: string;
 };
+
+/** An outfit planned for one calendar day. */
+export type CalendarEntry = {
+  outfitId: string;
+  /** Set once the day's outfit was marked as worn (counted into the items' wear counts). */
+  worn?: boolean;
+};
+
+/** Keyed by local day ("YYYY-MM-DD"). */
+export type Calendar = Record<string, CalendarEntry>;
 
 export const CategoryLabels: Record<Category, string> = {
   tops: 'Oberteile',

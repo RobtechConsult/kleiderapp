@@ -1,7 +1,8 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 
 import { deletePhoto, loadWardrobe, persistPhoto, saveWardrobe } from '@/lib/persistence';
-import type { ClothingItem, Outfit } from '@/types/wardrobe';
+import { fromDayKey, type DayKey } from '@/lib/dates';
+import type { Calendar, ClothingItem, Outfit } from '@/types/wardrobe';
 
 type NewItem = Omit<ClothingItem, 'id' | 'createdAt' | 'wearCount'>;
 type NewOutfit = Omit<Outfit, 'id' | 'createdAt'>;
@@ -17,8 +18,14 @@ type WardrobeState = {
   toggleFavorite: (id: string) => void;
   /** Increments the wear count and remembers today as the last wear date. */
   markWorn: (id: string) => void;
-  addOutfit: (outfit: NewOutfit) => void;
+  /** Returns the new outfit's id. */
+  addOutfit: (outfit: NewOutfit) => string;
   removeOutfit: (id: string) => void;
+  calendar: Calendar;
+  planOutfit: (day: DayKey, outfitId: string) => void;
+  unplanDay: (day: DayKey) => void;
+  /** Counts every item of the day's outfit as worn on that day (once per day). */
+  markDayWorn: (day: DayKey) => void;
 };
 
 /** Items needed before personal styling unlocks (onboarding goal on the start screen). */
@@ -32,12 +39,14 @@ export function WardrobeProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
   const [items, setItems] = useState<ClothingItem[]>([]);
   const [outfits, setOutfits] = useState<Outfit[]>([]);
+  const [calendar, setCalendar] = useState<Calendar>({});
 
   useEffect(() => {
     loadWardrobe().then((data) => {
       if (data) {
         setItems(data.items);
         setOutfits(data.outfits);
+        setCalendar(data.calendar ?? {});
       }
       setReady(true);
     });
@@ -45,8 +54,16 @@ export function WardrobeProvider({ children }: { children: ReactNode }) {
 
   // Save after every change, but never before loading finished (would overwrite the file).
   useEffect(() => {
-    if (ready) saveWardrobe({ version: 1, items, outfits });
-  }, [ready, items, outfits]);
+    if (ready) saveWardrobe({ version: 1, items, outfits, calendar });
+  }, [ready, items, outfits, calendar]);
+
+  /** Drops calendar days whose outfit no longer exists. */
+  const pruneCalendar = (remaining: Outfit[]) =>
+    setCalendar((prev) =>
+      Object.fromEntries(
+        Object.entries(prev).filter(([, entry]) => remaining.some((o) => o.id === entry.outfitId)),
+      ),
+    );
 
   const value: WardrobeState = {
     ready,
@@ -74,11 +91,11 @@ export function WardrobeProvider({ children }: { children: ReactNode }) {
     removeItem: (id) => {
       deletePhoto(items.find((i) => i.id === id)?.imageUri);
       setItems((prev) => prev.filter((i) => i.id !== id));
-      setOutfits((prev) =>
-        prev
-          .map((o) => ({ ...o, itemIds: o.itemIds.filter((itemId) => itemId !== id) }))
-          .filter((o) => o.itemIds.length > 0),
-      );
+      const remaining = outfits
+        .map((o) => ({ ...o, itemIds: o.itemIds.filter((itemId) => itemId !== id) }))
+        .filter((o) => o.itemIds.length > 0);
+      setOutfits(remaining);
+      pruneCalendar(remaining);
     },
     toggleFavorite: (id) =>
       setItems((prev) => prev.map((i) => (i.id === id ? { ...i, favorite: !i.favorite } : i))),
@@ -88,9 +105,41 @@ export function WardrobeProvider({ children }: { children: ReactNode }) {
           i.id === id ? { ...i, wearCount: i.wearCount + 1, lastWornAt: new Date().toISOString() } : i,
         ),
       ),
-    addOutfit: (outfit) =>
-      setOutfits((prev) => [{ ...outfit, id: newId(), createdAt: new Date().toISOString() }, ...prev]),
-    removeOutfit: (id) => setOutfits((prev) => prev.filter((o) => o.id !== id)),
+    addOutfit: (outfit) => {
+      const id = newId();
+      setOutfits((prev) => [{ ...outfit, id, createdAt: new Date().toISOString() }, ...prev]);
+      return id;
+    },
+    removeOutfit: (id) => {
+      const remaining = outfits.filter((o) => o.id !== id);
+      setOutfits(remaining);
+      pruneCalendar(remaining);
+    },
+    calendar,
+    planOutfit: (day, outfitId) => setCalendar((prev) => ({ ...prev, [day]: { outfitId } })),
+    unplanDay: (day) =>
+      setCalendar((prev) => {
+        const { [day]: _removed, ...rest } = prev;
+        return rest;
+      }),
+    markDayWorn: (day) => {
+      const entry = calendar[day];
+      const outfit = entry && outfits.find((o) => o.id === entry.outfitId);
+      if (!entry || entry.worn || !outfit) return;
+      const wornAt = fromDayKey(day).toISOString();
+      setItems((prev) =>
+        prev.map((i) =>
+          outfit.itemIds.includes(i.id)
+            ? {
+                ...i,
+                wearCount: i.wearCount + 1,
+                lastWornAt: !i.lastWornAt || i.lastWornAt < wornAt ? wornAt : i.lastWornAt,
+              }
+            : i,
+        ),
+      );
+      setCalendar((prev) => ({ ...prev, [day]: { ...entry, worn: true } }));
+    },
   };
 
   return <WardrobeContext.Provider value={value}>{children}</WardrobeContext.Provider>;

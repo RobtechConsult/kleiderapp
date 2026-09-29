@@ -36,7 +36,7 @@ export function AppHeader({ title, left, onTitlePress, showCalendar = true, righ
         {right ?? (
           <>
             {showCalendar && (
-              <HeaderButton label="Kalender" onPress={() => comingSoon('Kalender')}>
+              <HeaderButton label="Kalender" onPress={() => router.push('/calendar')}>
                 <Icon ios="calendar" md="calendar_today" />
               </HeaderButton>
             )}

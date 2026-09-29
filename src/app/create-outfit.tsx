@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -14,7 +14,9 @@ import { Categories, CategoryLabels } from '@/types/wardrobe';
 
 export default function CreateOutfitScreen() {
   const theme = useTheme();
-  const { items, addOutfit } = useWardrobe();
+  // Set when opened from the calendar: the new outfit gets planned for that day.
+  const { date } = useLocalSearchParams<{ date?: string }>();
+  const { items, addOutfit, planOutfit } = useWardrobe();
   const [name, setName] = useState('');
   const [selected, setSelected] = useState<string[]>([]);
 
@@ -23,7 +25,8 @@ export default function CreateOutfitScreen() {
 
   function save() {
     const fallback = `Outfit vom ${new Date().toLocaleDateString('de-DE')}`;
-    addOutfit({ name: name.trim() || fallback, itemIds: selected });
+    const id = addOutfit({ name: name.trim() || fallback, itemIds: selected });
+    if (date) planOutfit(date, id);
     router.back();
   }
 

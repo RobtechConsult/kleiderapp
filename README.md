@@ -40,14 +40,16 @@ src/
     add-item.tsx         # Modal: Artikel per Kamera/Galerie hinzufügen
     create-outfit.tsx    # Modal: Outfit aus Artikeln zusammenstellen
     item/[id]/index.tsx  # Artikel-Detailansicht
+    calendar.tsx         # Kalender (auch als Reiter im Outfit-Tab)
+    plan-outfit.tsx      # Modal: Outfit für einen Tag wählen oder neu erstellen
     item/[id]/edit.tsx   # Modal: Artikel bearbeiten (gleiches Formular wie Hinzufügen)
     profile.tsx          # Profil & Einstellungen
   components/            # UI-Bausteine (Tab-Leiste mit +-Menü, Header, Icon, Screen, …)
   constants/theme.ts     # Farben (hell/dunkel), Abstände, Fonts
   data/                  # Demo-Daten (Entdecken-Feed)
-  lib/                   # Speicherung (persistence.ts / .web.ts), Dialoge
+  lib/                   # Speicherung (persistence.ts / .web.ts), Dialoge, Datums-Helfer
   store/                 # Zustand (Kleiderschrank & Outfits, React Context)
-  types/wardrobe.ts      # Datenmodell: ClothingItem, Outfit, Kategorien
+  types/wardrobe.ts      # Datenmodell: ClothingItem, Outfit, Calendar, Kategorien
 ```
 
 Die Oberfläche orientiert sich an Acloset: Tab-Leiste mit rundem **+** in der Mitte, das ein Menü öffnet (Artikel, Wunschliste, Outfit-Buch, Kalender, Beitrag). Noch nicht umgesetzte Funktionen zeigen "Kommt bald".
@@ -69,7 +71,7 @@ Die Oberfläche orientiert sich an Acloset: Tab-Leiste mit rundem **+** in der M
 ### Phase 2: Outfits und Planung
 - [x] Outfit-Buch: Artikel zu Outfits kombinieren, speichern, löschen (lange drücken)
 - [ ] Packliste
-- [ ] Kalender und Outfit-Planer
+- [x] Kalender: ein Outfit pro Tag planen, "Als getragen markieren" (zählt alle Artikel hoch), heute geplantes Outfit auf Start
 - [ ] Wetter am Standort für Outfitvorschläge (`expo-location` + Wetter-API)
 - [ ] Stil-Statistiken (Tragezähler ist schon da)
 
