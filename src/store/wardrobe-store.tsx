@@ -2,10 +2,11 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 
 import { deletePhoto, loadWardrobe, persistPhoto, saveWardrobe } from '@/lib/persistence';
 import { fromDayKey, type DayKey } from '@/lib/dates';
-import type { Calendar, ClothingItem, Outfit } from '@/types/wardrobe';
+import type { Calendar, ClothingItem, Outfit, Trip } from '@/types/wardrobe';
 
 type NewItem = Omit<ClothingItem, 'id' | 'createdAt' | 'wearCount'>;
 type NewOutfit = Omit<Outfit, 'id' | 'createdAt'>;
+type NewTrip = Pick<Trip, 'name' | 'startDate' | 'endDate' | 'itemIds'>;
 
 type WardrobeState = {
   /** False until the saved wardrobe has been loaded from disk. */
@@ -26,6 +27,15 @@ type WardrobeState = {
   unplanDay: (day: DayKey) => void;
   /** Counts every item of the day's outfit as worn on that day (once per day). */
   markDayWorn: (day: DayKey) => void;
+  trips: Trip[];
+  /** Returns the new trip's id. */
+  addTrip: (trip: NewTrip) => string;
+  updateTrip: (id: string, changes: Partial<Omit<Trip, 'id' | 'createdAt'>>) => void;
+  removeTrip: (id: string) => void;
+  /** Checks or unchecks a wardrobe item or an extra on the packing list. */
+  togglePacked: (tripId: string, entryId: string) => void;
+  /** Wardrobe items of all outfits planned in the calendar between two days (inclusive). */
+  itemsPlannedBetween: (start: DayKey, end: DayKey) => string[];
 };
 
 /** Items needed before personal styling unlocks (onboarding goal on the start screen). */
@@ -40,6 +50,7 @@ export function WardrobeProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<ClothingItem[]>([]);
   const [outfits, setOutfits] = useState<Outfit[]>([]);
   const [calendar, setCalendar] = useState<Calendar>({});
+  const [trips, setTrips] = useState<Trip[]>([]);
 
   useEffect(() => {
     loadWardrobe().then((data) => {
@@ -47,6 +58,7 @@ export function WardrobeProvider({ children }: { children: ReactNode }) {
         setItems(data.items);
         setOutfits(data.outfits);
         setCalendar(data.calendar ?? {});
+        setTrips(data.trips ?? []);
       }
       setReady(true);
     });
@@ -54,8 +66,8 @@ export function WardrobeProvider({ children }: { children: ReactNode }) {
 
   // Save after every change, but never before loading finished (would overwrite the file).
   useEffect(() => {
-    if (ready) saveWardrobe({ version: 1, items, outfits, calendar });
-  }, [ready, items, outfits, calendar]);
+    if (ready) saveWardrobe({ version: 1, items, outfits, calendar, trips });
+  }, [ready, items, outfits, calendar, trips]);
 
   /** Drops calendar days whose outfit no longer exists. */
   const pruneCalendar = (remaining: Outfit[]) =>
@@ -96,6 +108,13 @@ export function WardrobeProvider({ children }: { children: ReactNode }) {
         .filter((o) => o.itemIds.length > 0);
       setOutfits(remaining);
       pruneCalendar(remaining);
+      setTrips((prev) =>
+        prev.map((t) => ({
+          ...t,
+          itemIds: t.itemIds.filter((itemId) => itemId !== id),
+          packedItemIds: t.packedItemIds.filter((itemId) => itemId !== id),
+        })),
+      );
     },
     toggleFavorite: (id) =>
       setItems((prev) => prev.map((i) => (i.id === id ? { ...i, favorite: !i.favorite } : i))),
@@ -139,6 +158,49 @@ export function WardrobeProvider({ children }: { children: ReactNode }) {
         ),
       );
       setCalendar((prev) => ({ ...prev, [day]: { ...entry, worn: true } }));
+    },
+    trips,
+    addTrip: (trip) => {
+      const id = newId();
+      setTrips((prev) => [
+        ...prev,
+        { ...trip, id, packedItemIds: [], extras: [], createdAt: new Date().toISOString() },
+      ]);
+      return id;
+    },
+    updateTrip: (id, changes) =>
+      setTrips((prev) =>
+        prev.map((t) => {
+          if (t.id !== id) return t;
+          const next = { ...t, ...changes };
+          // Items taken off the list can't stay checked.
+          return { ...next, packedItemIds: next.packedItemIds.filter((i) => next.itemIds.includes(i)) };
+        }),
+      ),
+    removeTrip: (id) => setTrips((prev) => prev.filter((t) => t.id !== id)),
+    togglePacked: (tripId, entryId) =>
+      setTrips((prev) =>
+        prev.map((t) => {
+          if (t.id !== tripId) return t;
+          if (t.itemIds.includes(entryId)) {
+            const packed = t.packedItemIds.includes(entryId);
+            return {
+              ...t,
+              packedItemIds: packed
+                ? t.packedItemIds.filter((i) => i !== entryId)
+                : [...t.packedItemIds, entryId],
+            };
+          }
+          return { ...t, extras: t.extras.map((e) => (e.id === entryId ? { ...e, packed: !e.packed } : e)) };
+        }),
+      ),
+    itemsPlannedBetween: (start, end) => {
+      const ids = new Set<string>();
+      for (const [day, entry] of Object.entries(calendar)) {
+        if (day < start || day > end) continue;
+        outfits.find((o) => o.id === entry.outfitId)?.itemIds.forEach((i) => ids.add(i));
+      }
+      return [...ids];
     },
   };
 

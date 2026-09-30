@@ -21,31 +21,31 @@ const ADD_BUTTON_SIZE = 60;
  */
 export function AppTabs() {
   const insets = useSafeAreaInsets();
+  const theme = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
     <Tabs>
       <TabSlot style={styles.slot} />
-      <TabList asChild>
-        <ThemedView style={[styles.bar, { paddingBottom: insets.bottom }]}>
-          <TabTrigger name="index" href="/" asChild>
-            <TabButton label="Start" icon={{ ios: 'house', md: 'home' }} />
-          </TabTrigger>
-          <TabTrigger name="wardrobe" href="/wardrobe" asChild>
-            <TabButton label="Kleiderschrank" icon={{ ios: 'cabinet', md: 'door_sliding' }} />
-          </TabTrigger>
+      {/* No asChild here: its prop merging turns a style array into {0: …, 1: …}, which crashes on web. */}
+      <TabList style={[styles.bar, { paddingBottom: insets.bottom, backgroundColor: theme.background }]}>
+        <TabTrigger name="index" href="/" asChild>
+          <TabButton label="Start" icon={{ ios: 'house', md: 'home' }} />
+        </TabTrigger>
+        <TabTrigger name="wardrobe" href="/wardrobe" asChild>
+          <TabButton label="Kleiderschrank" icon={{ ios: 'cabinet', md: 'door_sliding' }} />
+        </TabTrigger>
 
-          <View style={styles.addSlot}>
-            <AddButton open={menuOpen} onPress={() => setMenuOpen(true)} />
-          </View>
+        <View style={styles.addSlot}>
+          <AddButton open={menuOpen} onPress={() => setMenuOpen(true)} />
+        </View>
 
-          <TabTrigger name="outfits" href="/outfits" asChild>
-            <TabButton label="Outfit" icon={{ ios: 'tshirt', md: 'checkroom' }} />
-          </TabTrigger>
-          <TabTrigger name="discover" href="/discover" asChild>
-            <TabButton label="Entdecken" icon={{ ios: 'safari', md: 'explore' }} />
-          </TabTrigger>
-        </ThemedView>
+        <TabTrigger name="outfits" href="/outfits" asChild>
+          <TabButton label="Outfit" icon={{ ios: 'tshirt', md: 'checkroom' }} />
+        </TabTrigger>
+        <TabTrigger name="discover" href="/discover" asChild>
+          <TabButton label="Entdecken" icon={{ ios: 'safari', md: 'explore' }} />
+        </TabTrigger>
       </TabList>
 
       <AddMenu open={menuOpen} onClose={() => setMenuOpen(false)} bottomInset={insets.bottom} />

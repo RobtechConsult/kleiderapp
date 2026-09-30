@@ -30,6 +30,9 @@ export default function RootLayout() {
           />
           <Stack.Screen name="calendar" options={{ title: 'Kalender' }} />
           <Stack.Screen name="plan-outfit" options={{ title: 'Outfit planen', presentation: 'modal' }} />
+          <Stack.Screen name="trip/new" options={{ title: 'Neue Packliste', presentation: 'modal' }} />
+          <Stack.Screen name="trip/[id]/index" options={{ title: '' }} />
+          <Stack.Screen name="trip/[id]/items" options={{ title: 'Artikel wählen', presentation: 'modal' }} />
           <Stack.Screen name="profile" options={{ title: 'Profil' }} />
         </Stack>
       </WardrobeProvider>

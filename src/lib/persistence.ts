@@ -1,6 +1,6 @@
 import { Directory, File, Paths } from 'expo-file-system';
 
-import type { Calendar, ClothingItem, Outfit } from '@/types/wardrobe';
+import type { Calendar, ClothingItem, Outfit, Trip } from '@/types/wardrobe';
 
 export type PersistedWardrobe = {
   version: 1;
@@ -8,6 +8,8 @@ export type PersistedWardrobe = {
   outfits: Outfit[];
   /** Missing in files saved before the calendar existed. */
   calendar?: Calendar;
+  /** Missing in files saved before packing lists existed. */
+  trips?: Trip[];
 };
 
 const root = new Directory(Paths.document, 'wardrobe');

@@ -42,6 +42,23 @@ export type CalendarEntry = {
 /** Keyed by local day ("YYYY-MM-DD"). */
 export type Calendar = Record<string, CalendarEntry>;
 
+/** Something to pack that is not part of the wardrobe ("Ladekabel", "Zahnbürste"). */
+export type PackingExtra = { id: string; label: string; packed: boolean };
+
+/** A packing list for a trip. */
+export type Trip = {
+  id: string;
+  name: string;
+  /** Local days ("YYYY-MM-DD"), inclusive. */
+  startDate: string;
+  endDate: string;
+  itemIds: string[];
+  /** Subset of itemIds already in the suitcase. */
+  packedItemIds: string[];
+  extras: PackingExtra[];
+  createdAt: string;
+};
+
 export const CategoryLabels: Record<Category, string> = {
   tops: 'Oberteile',
   bottoms: 'Hosen & Röcke',

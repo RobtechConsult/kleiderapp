@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { AppHeader } from '@/components/app-header';
 import { Icon } from '@/components/icon';
 import { OutfitCalendar } from '@/components/outfit-calendar';
+import { TripList } from '@/components/trip-list';
 import { ItemImage } from '@/components/item-tile';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
@@ -54,9 +55,7 @@ export default function OutfitsScreen() {
             ))}
           </>
         )}
-        {segment === 'Packliste' && (
-          <Empty text="Plane, was du auf Reisen mitnimmst." />
-        )}
+        {segment === 'Packliste' && <TripList />}
         {segment === 'Kalender' && (
           <View style={styles.calendar}>
             <OutfitCalendar />
@@ -102,14 +101,6 @@ function OutfitCard({ outfit }: { outfit: Outfit }) {
         {outfit.name}
       </ThemedText>
     </Pressable>
-  );
-}
-
-function Empty({ text }: { text: string }) {
-  return (
-    <ThemedText themeColor="textSecondary" style={styles.empty}>
-      {text}
-    </ThemedText>
   );
 }
 
@@ -167,11 +158,6 @@ const styles = StyleSheet.create({
     height: '50%',
   },
   calendar: {
-    width: '100%',
-  },
-  empty: {
-    paddingVertical: Spacing.five,
-    textAlign: 'center',
     width: '100%',
   },
 });

@@ -42,6 +42,9 @@ src/
     item/[id]/index.tsx  # Artikel-Detailansicht
     calendar.tsx         # Kalender (auch als Reiter im Outfit-Tab)
     plan-outfit.tsx      # Modal: Outfit für einen Tag wählen oder neu erstellen
+    trip/new.tsx         # Modal: neue Packliste (Name, Zeitraum)
+    trip/[id]/index.tsx  # Packliste abhaken, eigene Einträge
+    trip/[id]/items.tsx  # Modal: Artikel für die Packliste wählen
     item/[id]/edit.tsx   # Modal: Artikel bearbeiten (gleiches Formular wie Hinzufügen)
     profile.tsx          # Profil & Einstellungen
   components/            # UI-Bausteine (Tab-Leiste mit +-Menü, Header, Icon, Screen, …)
@@ -50,7 +53,7 @@ src/
   lib/                   # Speicherung (persistence.ts / .web.ts), Dialoge, Datums-Helfer,
                          # background-removal/ (Freistellen)
   store/                 # Zustand (Kleiderschrank & Outfits, React Context)
-  types/wardrobe.ts      # Datenmodell: ClothingItem, Outfit, Calendar, Kategorien
+  types/wardrobe.ts      # Datenmodell: ClothingItem, Outfit, Calendar, Trip, Kategorien
 ```
 
 Die Oberfläche orientiert sich an Acloset: Tab-Leiste mit rundem **+** in der Mitte, das ein Menü öffnet (Artikel, Wunschliste, Outfit-Buch, Kalender, Beitrag). Noch nicht umgesetzte Funktionen zeigen "Kommt bald".
@@ -71,7 +74,7 @@ Die Oberfläche orientiert sich an Acloset: Tab-Leiste mit rundem **+** in der M
 
 ### Phase 2: Outfits und Planung
 - [x] Outfit-Buch: Artikel zu Outfits kombinieren, speichern, löschen (lange drücken)
-- [ ] Packliste
+- [x] Packliste: Reisen mit Zeitraum, Artikel aus geplanten Outfits übernehmen, abhaken, eigene Einträge
 - [x] Kalender: ein Outfit pro Tag planen, "Als getragen markieren" (zählt alle Artikel hoch), heute geplantes Outfit auf Start
 - [ ] Wetter am Standort für Outfitvorschläge (`expo-location` + Wetter-API)
 - [ ] Stil-Statistiken (Tragezähler ist schon da)
@@ -100,4 +103,5 @@ Nach dem Aufnehmen oder Auswählen eines Fotos wird der Hintergrund automatisch 
 ## Konfiguration
 
 - App-Name und Bundle-IDs (`com.robtechconsult.kleiderapp`) stehen in `app.json`. Vor dem ersten Store-Release prüfen.
+- Web-Version: Single-Page-App (`web.output: "single"`); auf GitHub Pages ist `404.html` eine Kopie von `index.html`, damit direkte Links (z. B. `/item/<id>`) funktionieren.
 - Die Ordner `ios/` und `android/` werden generiert (Continuous Native Generation) und nicht eingecheckt.
