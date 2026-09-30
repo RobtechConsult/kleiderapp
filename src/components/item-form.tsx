@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
-import { useState, type ReactNode } from 'react';
-import { Alert, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { useRef, useState, type ReactNode } from 'react';
+import { ActivityIndicator, Alert, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Icon, type IconProps } from './icon';
@@ -10,6 +10,8 @@ import { ThemedView } from './themed-view';
 
 import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { removeBackground } from '@/lib/background-removal';
+import type { SegmentFailure } from '@/lib/background-removal/segment';
 import {
   Categories,
   CategoryLabels,
@@ -29,6 +31,12 @@ const PICKER_OPTIONS: ImagePicker.ImagePickerOptions = {
   quality: 0.8,
 };
 
+const REMOVAL_FAILED: Record<SegmentFailure | 'error', string> = {
+  'busy-background': 'Der Hintergrund ist zu unruhig. Am besten klappt es auf einer einfarbigen Fläche.',
+  'no-subject': 'Kein Kleidungsstück erkannt.',
+  error: 'Freistellen hat nicht geklappt.',
+};
+
 export type ItemFormValues = Pick<ClothingItem, 'category' | 'brand' | 'imageUri' | 'color' | 'seasons'>;
 
 type ItemFormProps = {
@@ -40,7 +48,14 @@ type ItemFormProps = {
 /** Photo, category, brand, color and seasons of a clothing item (used for adding and editing). */
 export function ItemForm({ initial, onSubmit }: ItemFormProps) {
   const theme = useTheme();
-  const [imageUri, setImageUri] = useState(initial?.imageUri);
+  // The picked photo, its background-free version, and which of the two gets saved.
+  const [photo, setPhoto] = useState(initial?.imageUri);
+  const [cutout, setCutout] = useState<string>();
+  const [useCutout, setUseCutout] = useState(false);
+  const [removing, setRemoving] = useState(false);
+  const [removalError, setRemovalError] = useState<string>();
+  const removalRun = useRef(0);
+  const imageUri = useCutout && cutout ? cutout : photo;
   const [category, setCategory] = useState<Category>(initial?.category ?? 'tops');
   const [brand, setBrand] = useState(initial?.brand ?? '');
   const [color, setColor] = useState(initial?.color);
@@ -56,12 +71,42 @@ export function ItemForm({ initial, onSubmit }: ItemFormProps) {
       return;
     }
     const result = await ImagePicker.launchCameraAsync(PICKER_OPTIONS);
-    if (!result.canceled) setImageUri(result.assets[0].uri);
+    if (!result.canceled) choosePhoto(result.assets[0].uri);
   }
 
   async function pickFromLibrary() {
     const result = await ImagePicker.launchImageLibraryAsync(PICKER_OPTIONS);
-    if (!result.canceled) setImageUri(result.assets[0].uri);
+    if (!result.canceled) choosePhoto(result.assets[0].uri);
+  }
+
+  function choosePhoto(uri: string | undefined) {
+    setPhoto(uri);
+    setCutout(undefined);
+    setUseCutout(false);
+    setRemovalError(undefined);
+    if (uri) runRemoval(uri);
+    else removalRun.current++;
+  }
+
+  async function runRemoval(uri: string) {
+    const run = ++removalRun.current; // a newer photo makes older results obsolete
+    setRemoving(true);
+    setRemovalError(undefined);
+    try {
+      const result = await removeBackground(uri);
+      if (run !== removalRun.current) return;
+      if (result.ok) {
+        setCutout(result.uri);
+        setUseCutout(true);
+      } else {
+        setRemovalError(REMOVAL_FAILED[result.reason]);
+      }
+    } catch (e) {
+      console.warn(e);
+      if (run === removalRun.current) setRemovalError(REMOVAL_FAILED.error);
+    } finally {
+      if (run === removalRun.current) setRemoving(false);
+    }
   }
 
   const [saving, setSaving] = useState(false);
@@ -77,7 +122,7 @@ export function ItemForm({ initial, onSubmit }: ItemFormProps) {
     }
   }
 
-  const canSave = Boolean(imageUri || color) && !saving;
+  const canSave = Boolean(imageUri || color) && !saving && !removing;
 
   return (
     <ThemedView style={styles.container}>
@@ -86,7 +131,18 @@ export function ItemForm({ initial, onSubmit }: ItemFormProps) {
           {imageUri ? (
             <>
               <Image source={{ uri: imageUri }} style={StyleSheet.absoluteFill} contentFit="contain" />
-              <Pressable style={styles.retake} onPress={() => setImageUri(undefined)}>
+              {removing && (
+                <View style={styles.removing}>
+                  <ActivityIndicator color="#fff" />
+                  <ThemedText type="small" style={styles.removingText}>
+                    Hintergrund wird entfernt …
+                  </ThemedText>
+                </View>
+              )}
+              <Pressable
+                accessibilityLabel="Anderes Foto wählen"
+                style={styles.retake}
+                onPress={() => choosePhoto(undefined)}>
                 <ThemedView style={styles.retakeInner}>
                   <Icon ios="arrow.counterclockwise" md="refresh" size={18} />
                 </ThemedView>
@@ -101,6 +157,38 @@ export function ItemForm({ initial, onSubmit }: ItemFormProps) {
             </View>
           )}
         </ThemedView>
+
+        {photo && !removing && (
+          <View style={styles.cutoutRow}>
+            {cutout ? (
+              <View style={styles.chips}>
+                {[
+                  { label: 'Freigestellt', value: true },
+                  { label: 'Original', value: false },
+                ].map((option) => (
+                  <Pressable key={option.label} onPress={() => setUseCutout(option.value)}>
+                    <ThemedView
+                      type={useCutout === option.value ? 'primary' : 'backgroundElement'}
+                      style={styles.chip}>
+                      <ThemedText type="small" themeColor={useCutout === option.value ? 'onPrimary' : 'text'}>
+                        {option.label}
+                      </ThemedText>
+                    </ThemedView>
+                  </Pressable>
+                ))}
+              </View>
+            ) : removalError ? (
+              <ThemedText type="small" themeColor="textSecondary">
+                {removalError} Das Originalfoto wird verwendet.
+              </ThemedText>
+            ) : (
+              <Pressable onPress={() => runRemoval(photo)} style={styles.removeButton}>
+                <Icon ios="wand.and.stars" md="auto_fix_high" size={18} />
+                <ThemedText type="small">Hintergrund entfernen</ThemedText>
+              </Pressable>
+            )}
+          </View>
+        )}
 
         <Field label="Kategorie">
           <View style={styles.chips}>
@@ -243,6 +331,25 @@ const styles = StyleSheet.create({
     borderRadius: 36,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  removing: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.two,
+  },
+  removingText: {
+    color: '#fff',
+  },
+  cutoutRow: {
+    marginTop: -Spacing.two,
+  },
+  removeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.one,
+    alignSelf: 'flex-start',
   },
   retake: {
     position: 'absolute',
