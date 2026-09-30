@@ -46,11 +46,13 @@ src/
     trip/[id]/index.tsx  # Packliste abhaken, eigene Einträge
     trip/[id]/items.tsx  # Modal: Artikel für die Packliste wählen
     item/[id]/edit.tsx   # Modal: Artikel bearbeiten (gleiches Formular wie Hinzufügen)
+    wishlist.tsx         # Wunschliste
     profile.tsx          # Profil & Einstellungen
   components/            # UI-Bausteine (Tab-Leiste mit +-Menü, Header, Icon, Screen, …)
   constants/theme.ts     # Farben (hell/dunkel), Abstände, Fonts
   data/                  # Demo-Daten (Entdecken-Feed)
   lib/                   # Speicherung (persistence.ts / .web.ts), Dialoge, Datums-Helfer,
+                         # item-filters.ts (Sortieren/Filtern),
                          # background-removal/ (Freistellen)
   store/                 # Zustand (Kleiderschrank & Outfits, React Context)
   types/wardrobe.ts      # Datenmodell: ClothingItem, Outfit, Calendar, Trip, Kategorien
@@ -70,7 +72,9 @@ Die Oberfläche orientiert sich an Acloset: Tab-Leiste mit rundem **+** in der M
 - [x] Bearbeiten (Foto, Kategorie, Marke, Farbe, Saison)
 - [x] Lokale Speicherung: JSON + Fotos im App-Dokumentenordner (`expo-file-system`), im Web `localStorage`
 - [x] Artikel löschen (lange drücken)
-- [ ] Sortierung, Filter, Wunschliste, Artikel importieren
+- [x] Sortierung (6 Varianten) und Filter (Favoriten, nie getragen, Farbe, Saison, Marke) im Kleiderschrank
+- [x] Wunschliste mit Preis und Shop-Link, "Gekauft" verschiebt in den Kleiderschrank
+- [ ] Artikel importieren
 
 ### Phase 2: Outfits und Planung
 - [x] Outfit-Buch: Artikel zu Outfits kombinieren, speichern, löschen (lange drücken)

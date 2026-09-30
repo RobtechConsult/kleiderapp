@@ -1,4 +1,5 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
+import * as WebBrowser from 'expo-web-browser';
 import type { ReactNode } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -11,6 +12,7 @@ import { ThemedView } from '@/components/themed-view';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { confirmDestructive } from '@/lib/dialogs';
+import { formatPrice } from '@/lib/format';
 import { useWardrobe } from '@/store/wardrobe-store';
 import { CategoryLabels, SeasonLabels, Seasons, type Outfit } from '@/types/wardrobe';
 
@@ -19,8 +21,8 @@ const formatDate = (iso: string) => new Date(iso).toLocaleDateString('de-DE');
 export default function ItemDetailScreen() {
   const theme = useTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { items, outfits, toggleFavorite, markWorn, removeItem } = useWardrobe();
-  const item = items.find((i) => i.id === id);
+  const { getItem, outfits, toggleFavorite, markWorn, removeItem, moveToWardrobe } = useWardrobe();
+  const item = getItem(id);
 
   if (!item) {
     return (
@@ -39,12 +41,14 @@ export default function ItemDetailScreen() {
     if (!item) return;
     const ok = await confirmDestructive(
       'Artikel löschen?',
-      `${title} wird aus deinem Kleiderschrank und allen Outfits entfernt.`,
+      item.wishlist
+        ? `${title} wird von deiner Wunschliste entfernt.`
+        : `${title} wird aus deinem Kleiderschrank und allen Outfits entfernt.`,
     );
     if (ok) {
       // Opened via deep link there is no screen to go back to.
       if (router.canGoBack()) router.back();
-      else router.replace('/wardrobe');
+      else router.replace(item.wishlist ? '/wishlist' : '/wardrobe');
       removeItem(item.id);
     }
   }
@@ -82,22 +86,49 @@ export default function ItemDetailScreen() {
           </Pressable>
         </ThemedView>
 
-        <View style={styles.wear}>
-          <View style={styles.grow}>
-            <ThemedText type="subtitle">{item.wearCount}×</ThemedText>
-            <ThemedText type="small" themeColor="textSecondary">
-              {item.lastWornAt ? `getragen, zuletzt am ${formatDate(item.lastWornAt)}` : 'noch nie getragen'}
-            </ThemedText>
+        {item.wishlist ? (
+          <View style={styles.wear}>
+            <View style={styles.grow}>
+              <ThemedText type="subtitle">{item.price !== undefined ? formatPrice(item.price) : 'Wunschliste'}</ThemedText>
+              {item.link ? (
+                <Pressable onPress={() => item.link && WebBrowser.openBrowserAsync(item.link)}>
+                  <ThemedText type="small" style={{ color: theme.accent }}>
+                    Im Shop ansehen
+                  </ThemedText>
+                </Pressable>
+              ) : (
+                <ThemedText type="small" themeColor="textSecondary">
+                  Auf deiner Wunschliste
+                </ThemedText>
+              )}
+            </View>
+            <Pressable
+              onPress={() => moveToWardrobe(item.id)}
+              style={({ pressed }) => [styles.wornButton, { backgroundColor: theme.primary }, pressed && styles.pressed]}>
+              <Icon ios="bag" md="shopping_bag" color={theme.onPrimary} size={18} />
+              <ThemedText type="small" style={{ color: theme.onPrimary }}>
+                Gekauft
+              </ThemedText>
+            </Pressable>
           </View>
-          <Pressable
-            onPress={() => markWorn(item.id)}
-            style={({ pressed }) => [styles.wornButton, { backgroundColor: theme.primary }, pressed && styles.pressed]}>
-            <Icon ios="checkmark" md="check" color={theme.onPrimary} size={18} />
-            <ThemedText type="small" style={{ color: theme.onPrimary }}>
-              Heute getragen
-            </ThemedText>
-          </Pressable>
-        </View>
+        ) : (
+          <View style={styles.wear}>
+            <View style={styles.grow}>
+              <ThemedText type="subtitle">{item.wearCount}×</ThemedText>
+              <ThemedText type="small" themeColor="textSecondary">
+                {item.lastWornAt ? `getragen, zuletzt am ${formatDate(item.lastWornAt)}` : 'noch nie getragen'}
+              </ThemedText>
+            </View>
+            <Pressable
+              onPress={() => markWorn(item.id)}
+              style={({ pressed }) => [styles.wornButton, { backgroundColor: theme.primary }, pressed && styles.pressed]}>
+              <Icon ios="checkmark" md="check" color={theme.onPrimary} size={18} />
+              <ThemedText type="small" style={{ color: theme.onPrimary }}>
+                Heute getragen
+              </ThemedText>
+            </Pressable>
+          </View>
+        )}
 
         <ThemedView type="backgroundElement" style={styles.card}>
           <Row label="Kategorie">{CategoryLabels[item.category]}</Row>
@@ -115,22 +146,24 @@ export default function ItemDetailScreen() {
           <Row label="Hinzugefügt">{formatDate(item.createdAt)}</Row>
         </ThemedView>
 
-        <View style={styles.section}>
-          <ThemedText type="smallBold">In Outfits ({inOutfits.length})</ThemedText>
-          {inOutfits.length === 0 ? (
-            <Pressable onPress={() => router.push('/create-outfit')}>
-              <ThemedText type="small" themeColor="textSecondary">
-                Noch in keinem Outfit. <ThemedText type="small" style={{ color: theme.accent }}>Outfit erstellen</ThemedText>
-              </ThemedText>
-            </Pressable>
-          ) : (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.outfits}>
-              {inOutfits.map((o) => (
-                <OutfitThumb key={o.id} outfit={o} />
-              ))}
-            </ScrollView>
-          )}
-        </View>
+        {!item.wishlist && (
+          <View style={styles.section}>
+            <ThemedText type="smallBold">In Outfits ({inOutfits.length})</ThemedText>
+            {inOutfits.length === 0 ? (
+              <Pressable onPress={() => router.push('/create-outfit')}>
+                <ThemedText type="small" themeColor="textSecondary">
+                  Noch in keinem Outfit. <ThemedText type="small" style={{ color: theme.accent }}>Outfit erstellen</ThemedText>
+                </ThemedText>
+              </Pressable>
+            ) : (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.outfits}>
+                {inOutfits.map((o) => (
+                  <OutfitThumb key={o.id} outfit={o} />
+                ))}
+              </ScrollView>
+            )}
+          </View>
+        )}
       </ScrollView>
 
       <SafeAreaView edges={['bottom']} style={styles.footer}>

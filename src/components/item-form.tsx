@@ -37,16 +37,21 @@ const REMOVAL_FAILED: Record<SegmentFailure | 'error', string> = {
   error: 'Freistellen hat nicht geklappt.',
 };
 
-export type ItemFormValues = Pick<ClothingItem, 'category' | 'brand' | 'imageUri' | 'color' | 'seasons'>;
+export type ItemFormValues = Pick<
+  ClothingItem,
+  'category' | 'brand' | 'imageUri' | 'color' | 'seasons' | 'price' | 'link'
+>;
 
 type ItemFormProps = {
   initial?: ItemFormValues;
+  /** Wish-list item: also asks for price and shop link. */
+  wishlist?: boolean;
   /** Persists the values; the form shows an error if it throws. */
   onSubmit: (values: ItemFormValues) => Promise<void>;
 };
 
 /** Photo, category, brand, color and seasons of a clothing item (used for adding and editing). */
-export function ItemForm({ initial, onSubmit }: ItemFormProps) {
+export function ItemForm({ initial, wishlist, onSubmit }: ItemFormProps) {
   const theme = useTheme();
   // The picked photo, its background-free version, and which of the two gets saved.
   const [photo, setPhoto] = useState(initial?.imageUri);
@@ -58,6 +63,8 @@ export function ItemForm({ initial, onSubmit }: ItemFormProps) {
   const imageUri = useCutout && cutout ? cutout : photo;
   const [category, setCategory] = useState<Category>(initial?.category ?? 'tops');
   const [brand, setBrand] = useState(initial?.brand ?? '');
+  const [price, setPrice] = useState(initial?.price !== undefined ? String(initial.price).replace('.', ',') : '');
+  const [link, setLink] = useState(initial?.link ?? '');
   const [color, setColor] = useState(initial?.color);
   const [seasons, setSeasons] = useState<Season[]>(initial?.seasons ?? []);
 
@@ -114,7 +121,16 @@ export function ItemForm({ initial, onSubmit }: ItemFormProps) {
   async function save() {
     setSaving(true);
     try {
-      await onSubmit({ category, brand: brand.trim() || undefined, imageUri, color, seasons });
+      const parsedPrice = Number.parseFloat(price.replace(',', '.'));
+      await onSubmit({
+        category,
+        brand: brand.trim() || undefined,
+        imageUri,
+        color,
+        seasons,
+        price: wishlist && Number.isFinite(parsedPrice) ? parsedPrice : undefined,
+        link: wishlist ? link.trim() || undefined : undefined,
+      });
     } catch (e) {
       console.warn(e);
       Alert.alert('Speichern fehlgeschlagen', 'Das Foto konnte nicht gespeichert werden.');
@@ -214,6 +230,33 @@ export function ItemForm({ initial, onSubmit }: ItemFormProps) {
             returnKeyType="done"
           />
         </Field>
+
+        {wishlist && (
+          <>
+            <Field label="Preis (€)">
+              <TextInput
+                value={price}
+                onChangeText={setPrice}
+                placeholder="z. B. 49,90"
+                placeholderTextColor={theme.textSecondary}
+                keyboardType="decimal-pad"
+                style={[styles.input, { color: theme.text, backgroundColor: theme.backgroundElement }]}
+              />
+            </Field>
+            <Field label="Link zum Shop">
+              <TextInput
+                value={link}
+                onChangeText={setLink}
+                placeholder="https://…"
+                placeholderTextColor={theme.textSecondary}
+                keyboardType="url"
+                autoCapitalize="none"
+                autoCorrect={false}
+                style={[styles.input, { color: theme.text, backgroundColor: theme.backgroundElement }]}
+              />
+            </Field>
+          </>
+        )}
 
         <Field label="Farbe">
           <View style={styles.chips}>

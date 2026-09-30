@@ -11,7 +11,14 @@ type NewTrip = Pick<Trip, 'name' | 'startDate' | 'endDate' | 'itemIds'>;
 type WardrobeState = {
   /** False until the saved wardrobe has been loaded from disk. */
   ready: boolean;
+  /** Owned items (the wardrobe). */
   items: ClothingItem[];
+  /** Wanted items, see ClothingItem.wishlist. */
+  wishlist: ClothingItem[];
+  /** Any item by id, owned or on the wish list. */
+  getItem: (id: string) => ClothingItem | undefined;
+  /** "Gekauft": moves a wish-list item into the wardrobe. */
+  moveToWardrobe: (id: string) => void;
   outfits: Outfit[];
   addItem: (item: NewItem) => Promise<void>;
   updateItem: (id: string, changes: Partial<NewItem>) => Promise<void>;
@@ -47,7 +54,8 @@ const newId = () => `${Date.now().toString(36)}${Math.random().toString(36).slic
 
 export function WardrobeProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
-  const [items, setItems] = useState<ClothingItem[]>([]);
+  const [allItems, setItems] = useState<ClothingItem[]>([]);
+  const items = allItems.filter((i) => !i.wishlist);
   const [outfits, setOutfits] = useState<Outfit[]>([]);
   const [calendar, setCalendar] = useState<Calendar>({});
   const [trips, setTrips] = useState<Trip[]>([]);
@@ -66,8 +74,8 @@ export function WardrobeProvider({ children }: { children: ReactNode }) {
 
   // Save after every change, but never before loading finished (would overwrite the file).
   useEffect(() => {
-    if (ready) saveWardrobe({ version: 1, items, outfits, calendar, trips });
-  }, [ready, items, outfits, calendar, trips]);
+    if (ready) saveWardrobe({ version: 1, items: allItems, outfits, calendar, trips });
+  }, [ready, allItems, outfits, calendar, trips]);
 
   /** Drops calendar days whose outfit no longer exists. */
   const pruneCalendar = (remaining: Outfit[]) =>
@@ -80,6 +88,14 @@ export function WardrobeProvider({ children }: { children: ReactNode }) {
   const value: WardrobeState = {
     ready,
     items,
+    wishlist: allItems.filter((i) => i.wishlist),
+    getItem: (id) => allItems.find((i) => i.id === id),
+    moveToWardrobe: (id) =>
+      setItems((prev) =>
+        prev.map((i) =>
+          i.id === id ? { ...i, wishlist: false, createdAt: new Date().toISOString() } : i,
+        ),
+      ),
     outfits,
     addItem: async (item) => {
       const id = newId();
@@ -90,7 +106,7 @@ export function WardrobeProvider({ children }: { children: ReactNode }) {
       ]);
     },
     updateItem: async (id, changes) => {
-      const current = items.find((i) => i.id === id);
+      const current = allItems.find((i) => i.id === id);
       if (!current) return;
       let { imageUri } = current;
       if ('imageUri' in changes && changes.imageUri !== current.imageUri) {
@@ -101,7 +117,7 @@ export function WardrobeProvider({ children }: { children: ReactNode }) {
       setItems((prev) => prev.map((i) => (i.id === id ? { ...i, ...changes, imageUri } : i)));
     },
     removeItem: (id) => {
-      deletePhoto(items.find((i) => i.id === id)?.imageUri);
+      deletePhoto(allItems.find((i) => i.id === id)?.imageUri);
       setItems((prev) => prev.filter((i) => i.id !== id));
       const remaining = outfits
         .map((o) => ({ ...o, itemIds: o.itemIds.filter((itemId) => itemId !== id) }))

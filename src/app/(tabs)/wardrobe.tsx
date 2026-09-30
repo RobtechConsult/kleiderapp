@@ -10,14 +10,16 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { FilterSheet, SortSheet } from '@/components/wardrobe-sheets';
+import { activeFilterCount, applyItemView, NO_FILTERS, SortLabels, type SortKey } from '@/lib/item-filters';
 import { useWardrobe } from '@/store/wardrobe-store';
 import { Categories, CategoryLabels, type Category, type ClothingItem } from '@/types/wardrobe';
 import { comingSoon, confirmDestructive } from '@/lib/dialogs';
 
-const QUICK_ACTIONS: { label: string; icon: Pick<IconProps, 'ios' | 'md'> }[] = [
+const QUICK_ACTIONS: { label: string; icon: Pick<IconProps, 'ios' | 'md'>; onPress?: () => void }[] = [
   { label: 'Artikel importieren', icon: { ios: 'square.and.arrow.down', md: 'download' } },
   { label: 'Stil-Statistiken', icon: { ios: 'chart.line.uptrend.xyaxis', md: 'trending_up' } },
-  { label: 'Wunschliste', icon: { ios: 'heart', md: 'favorite' } },
+  { label: 'Wunschliste', icon: { ios: 'heart', md: 'favorite' }, onPress: () => router.push('/wishlist') },
   { label: 'Verschönern', icon: { ios: 'wand.and.stars', md: 'auto_fix_high' } },
   { label: 'Kleiderschrank teilen', icon: { ios: 'square.and.arrow.up', md: 'ios_share' } },
 ];
@@ -29,9 +31,13 @@ export default function WardrobeScreen() {
   const { items } = useWardrobe();
   const [filter, setFilter] = useState<Category | 'all'>('all');
   const [bannerVisible, setBannerVisible] = useState(true);
+  const [sort, setSort] = useState<SortKey>('newest');
+  const [filters, setFilters] = useState(NO_FILTERS);
+  const [sheet, setSheet] = useState<'sort' | 'filter' | null>(null);
 
   const usedCategories = Categories.filter((c) => items.some((i) => i.category === c));
-  const visible = filter === 'all' ? items : items.filter((i) => i.category === filter);
+  const visible = applyItemView(items, { category: filter, filters, sort });
+  const filterCount = activeFilterCount(filters);
 
   return (
     <ThemedView style={styles.container}>
@@ -60,7 +66,7 @@ export default function WardrobeScreen() {
         <View style={styles.inner}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.actions}>
             {QUICK_ACTIONS.map((a) => (
-              <Pressable key={a.label} style={styles.action} onPress={() => comingSoon(a.label)}>
+              <Pressable key={a.label} style={styles.action} onPress={a.onPress ?? (() => comingSoon(a.label))}>
                 <ThemedView type="backgroundElement" style={styles.actionCircle}>
                   <Icon ios={a.icon.ios} md={a.icon.md} size={28} />
                 </ThemedView>
@@ -76,6 +82,7 @@ export default function WardrobeScreen() {
               <ThemedText type="smallBold" style={styles.sectionTitleText}>
                 Alle Kleidungsstücke
               </ThemedText>
+              <ThemedText themeColor="textSecondary">{items.length}</ThemedText>
               <Icon ios="chevron.down" md="keyboard_arrow_down" size={18} />
             </Pressable>
             <Pressable accessibilityLabel="Mehr" onPress={() => comingSoon('Optionen')} hitSlop={8}>
@@ -84,14 +91,23 @@ export default function WardrobeScreen() {
           </View>
 
           <View style={styles.filters}>
-            <Pressable onPress={() => comingSoon('Filter')}>
-              <ThemedView style={[styles.filterButton, { borderColor: theme.border }]}>
-                <Icon ios="slider.horizontal.3" md="tune" size={20} />
+            <Pressable
+              accessibilityLabel={filterCount ? `Filter (${filterCount} aktiv)` : 'Filter'}
+              onPress={() => setSheet('filter')}>
+              <ThemedView
+                type={filterCount ? 'primary' : 'background'}
+                style={[styles.filterButton, { borderColor: filterCount ? theme.primary : theme.border }]}>
+                <Icon ios="slider.horizontal.3" md="tune" size={20} color={filterCount ? theme.onPrimary : theme.text} />
+                {filterCount > 0 && (
+                  <ThemedText type="smallBold" style={{ color: theme.onPrimary }}>
+                    {filterCount}
+                  </ThemedText>
+                )}
               </ThemedView>
             </Pressable>
-            <Pressable onPress={() => comingSoon('Sortierung')}>
+            <Pressable accessibilityLabel="Sortierung" onPress={() => setSheet('sort')}>
               <ThemedView style={[styles.sortButton, { borderColor: theme.border }]}>
-                <ThemedText type="small">Zuletzt hinzugefügt</ThemedText>
+                <ThemedText type="small">{SortLabels[sort]}</ThemedText>
                 <Icon ios="chevron.down" md="keyboard_arrow_down" size={16} />
               </ThemedView>
             </Pressable>
@@ -111,7 +127,33 @@ export default function WardrobeScreen() {
           ))}
           <AddCell />
         </View>
+
+        {items.length > 0 && visible.length === 0 && (
+          <View style={styles.noResults}>
+            <ThemedText themeColor="textSecondary">Keine Artikel passen zu den Filtern.</ThemedText>
+            <Pressable
+              onPress={() => {
+                setFilters(NO_FILTERS);
+                setFilter('all');
+              }}>
+              <ThemedText type="smallBold" style={{ color: theme.accent }}>
+                Filter zurücksetzen
+              </ThemedText>
+            </Pressable>
+          </View>
+        )}
       </ScrollView>
+
+      <SortSheet visible={sheet === 'sort'} value={sort} onChange={setSort} onClose={() => setSheet(null)} />
+      <FilterSheet
+        visible={sheet === 'filter'}
+        items={items}
+        category={filter}
+        sort={sort}
+        value={filters}
+        onApply={setFilters}
+        onClose={() => setSheet(null)}
+      />
     </ThemedView>
   );
 }
@@ -254,7 +296,10 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   filterButton: {
-    width: 44,
+    minWidth: 44,
+    paddingHorizontal: Spacing.two,
+    flexDirection: 'row',
+    gap: Spacing.one,
     height: 40,
     borderRadius: Spacing.three,
     borderWidth: 1,
@@ -315,6 +360,11 @@ const styles = StyleSheet.create({
   },
   addLabel: {
     textAlign: 'center',
+  },
+  noResults: {
+    alignItems: 'center',
+    gap: Spacing.two,
+    padding: Spacing.four,
   },
   pressed: {
     opacity: 0.7,

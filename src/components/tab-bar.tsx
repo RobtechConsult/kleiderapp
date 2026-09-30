@@ -111,7 +111,7 @@ function AddMenu({
       title: 'Artikel',
       entries: [
         { label: 'Artikel hinzufügen', icon: { ios: 'tshirt', md: 'apparel' }, onPress: () => router.push('/add-item') },
-        { label: 'Zur Wunschliste hinzufügen', icon: { ios: 'heart', md: 'favorite' }, onPress: () => comingSoon('Wunschliste') },
+        { label: 'Zur Wunschliste hinzufügen', icon: { ios: 'heart', md: 'favorite' }, onPress: () => router.push({ pathname: '/add-item', params: { wishlist: '1' } }) },
       ],
     },
     {

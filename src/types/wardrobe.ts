@@ -22,6 +22,12 @@ export type ClothingItem = {
   wearCount: number;
   /** ISO date of the last time it was marked as worn. */
   lastWornAt?: string;
+  /** On the wish list: wanted, not owned yet. Kept out of the wardrobe, outfits and packing lists. */
+  wishlist?: boolean;
+  /** Price in euros (wish list). */
+  price?: number;
+  /** Shop link (wish list). */
+  link?: string;
   createdAt: string;
 };
 

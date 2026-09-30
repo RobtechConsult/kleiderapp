@@ -33,6 +33,7 @@ export default function RootLayout() {
           <Stack.Screen name="trip/new" options={{ title: 'Neue Packliste', presentation: 'modal' }} />
           <Stack.Screen name="trip/[id]/index" options={{ title: '' }} />
           <Stack.Screen name="trip/[id]/items" options={{ title: 'Artikel wählen', presentation: 'modal' }} />
+          <Stack.Screen name="wishlist" options={{ title: 'Wunschliste' }} />
           <Stack.Screen name="profile" options={{ title: 'Profil' }} />
         </Stack>
       </WardrobeProvider>
