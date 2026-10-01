@@ -34,3 +34,6 @@ export async function removeBackground(uri: string): Promise<BackgroundRemovalRe
   cutout.write(encodePng(result.image));
   return { ok: true, uri: cutout.uri };
 }
+
+/** Web only (downloads the AI model ahead of time); nothing to preload natively. */
+export function preloadBackgroundRemoval() {}

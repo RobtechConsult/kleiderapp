@@ -46,6 +46,7 @@ src/
     trip/[id]/index.tsx  # Packliste abhaken, eigene Einträge
     trip/[id]/items.tsx  # Modal: Artikel für die Packliste wählen
     item/[id]/edit.tsx   # Modal: Artikel bearbeiten (gleiches Formular wie Hinzufügen)
+    import-items.tsx     # Modal: bis zu 15 Fotos auf einmal importieren
     wishlist.tsx         # Wunschliste
     profile.tsx          # Profil & Einstellungen
   components/            # UI-Bausteine (Tab-Leiste mit +-Menü, Header, Icon, Screen, …)
@@ -74,7 +75,7 @@ Die Oberfläche orientiert sich an Acloset: Tab-Leiste mit rundem **+** in der M
 - [x] Artikel löschen (lange drücken)
 - [x] Sortierung (6 Varianten) und Filter (Favoriten, nie getragen, Farbe, Saison, Marke) im Kleiderschrank
 - [x] Wunschliste mit Preis und Shop-Link, "Gekauft" verschiebt in den Kleiderschrank
-- [ ] Artikel importieren
+- [x] Artikel importieren: bis zu 15 Fotos auf einmal aus der Galerie, automatisch freigestellt
 
 ### Phase 2: Outfits und Planung
 - [x] Outfit-Buch: Artikel zu Outfits kombinieren, speichern, löschen (lange drücken)
@@ -96,13 +97,13 @@ Die Oberfläche orientiert sich an Acloset: Tab-Leiste mit rundem **+** in der M
 
 ## Freistellen
 
-Nach dem Aufnehmen oder Auswählen eines Fotos wird der Hintergrund automatisch entfernt; im Formular lässt sich zwischen "Freigestellt" und "Original" wechseln, bei bestehenden Fotos per "Hintergrund entfernen".
+Nach dem Aufnehmen oder Auswählen eines Fotos wird der Hintergrund automatisch entfernt; im Formular lässt sich zwischen "Freigestellt" und "Original" wechseln, bei bestehenden Fotos per "Hintergrund entfernen". Über "Artikel importieren" lassen sich bis zu 15 Fotos auf einmal übernehmen und freistellen.
 
-- Eigener Algorithmus in TypeScript (`src/lib/background-removal/segment.ts`), läuft identisch auf iOS, Android und Web, ohne Server und ohne native Zusatzmodule (funktioniert auch in Expo Go).
-- Funktionsweise: Hintergrundfarbe am Bildrand schätzen, vom Rand aus füllen (inkl. weicher Schatten), Silhouette schließen und Löcher füllen, Kanten glätten, zuschneiden.
-- Am besten: ein Kleidungsstück auf einer einfarbigen Fläche (Bett, Boden, Wand). Bei unruhigem Hintergrund wird das Originalfoto verwendet.
-- Native: Foto mit `expo-image-manipulator` auf 640 px verkleinern, PNG in JS dekodieren/kodieren (`png.ts`, basiert auf `fflate`). Web: Canvas, 768 px, Ergebnis als WebP.
-- Bewusst nicht verwendet: `@imgly/background-removal` (AGPL-Lizenz). Später möglich: KI-Freistellen über Apple Vision / Google ML Kit (braucht Development Build) oder über ein eigenes Backend.
+- **Web (GitHub Pages):** KI-Segmentierung mit dem Modell U²-Net-P (Apache-2.0, 4,6 MB, `public/models/u2netp.onnx`) über `onnxruntime-web` (MIT), komplett im Browser. Modell und Runtime (~11 MB, beim `npm install` nach `public/ort` kopiert) liegen auf der eigenen Seite und werden beim ersten Freistellen geladen und dann vom Browser gecacht. Funktioniert auch bei unruhigem Hintergrund. Nachbearbeitung in `mask.ts`: Hauptobjekt behalten, lose Reste entfernen, weiche Kanten, zuschneiden.
+- **iOS/Android (Expo Go):** Hier kann kein KI-Modell laufen; es bleibt der farbbasierte Algorithmus (`segment.ts`), der nur bei einfarbigem Untergrund gut funktioniert. Nächster Schritt dafür: Apple Vision (iOS 17+) bzw. Google ML Kit Subject Segmentation in einem eigenen Development Build.
+- Fällt das Modell aus (z. B. offline beim ersten Mal), nutzt auch die Web-Version den farbbasierten Algorithmus.
+- Modellwahl: Auf einem Testset mit Kleidung auf Ziegel, Kies, Gras, Holz und Stoff erreichte U²-Net-P im Schnitt 96 % Übereinstimmung (IoU) – genauso gut wie das 40× größere IS-Net, aber etwa 6× schneller.
+- Bewusst nicht verwendet: `@imgly/background-removal` (AGPL) und RMBG (nicht-kommerzielle Lizenz).
 
 ## Konfiguration
 

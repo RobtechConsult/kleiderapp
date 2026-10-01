@@ -1,6 +1,6 @@
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
-import { useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { ActivityIndicator, Alert, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -10,7 +10,7 @@ import { ThemedView } from './themed-view';
 
 import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { removeBackground } from '@/lib/background-removal';
+import { preloadBackgroundRemoval, removeBackground } from '@/lib/background-removal';
 import type { SegmentFailure } from '@/lib/background-removal/segment';
 import {
   Categories,
@@ -46,12 +46,14 @@ type ItemFormProps = {
   initial?: ItemFormValues;
   /** Wish-list item: also asks for price and shop link. */
   wishlist?: boolean;
+  /** Shows a "several photos at once" link while no photo is chosen. */
+  onImportMany?: () => void;
   /** Persists the values; the form shows an error if it throws. */
   onSubmit: (values: ItemFormValues) => Promise<void>;
 };
 
 /** Photo, category, brand, color and seasons of a clothing item (used for adding and editing). */
-export function ItemForm({ initial, wishlist, onSubmit }: ItemFormProps) {
+export function ItemForm({ initial, wishlist, onImportMany, onSubmit }: ItemFormProps) {
   const theme = useTheme();
   // The picked photo, its background-free version, and which of the two gets saved.
   const [photo, setPhoto] = useState(initial?.imageUri);
@@ -61,6 +63,8 @@ export function ItemForm({ initial, wishlist, onSubmit }: ItemFormProps) {
   const [removalError, setRemovalError] = useState<string>();
   const removalRun = useRef(0);
   const imageUri = useCutout && cutout ? cutout : photo;
+
+  useEffect(() => preloadBackgroundRemoval(), []);
   const [category, setCategory] = useState<Category>(initial?.category ?? 'tops');
   const [brand, setBrand] = useState(initial?.brand ?? '');
   const [price, setPrice] = useState(initial?.price !== undefined ? String(initial.price).replace('.', ',') : '');
@@ -173,6 +177,13 @@ export function ItemForm({ initial, wishlist, onSubmit }: ItemFormProps) {
             </View>
           )}
         </ThemedView>
+
+        {!photo && onImportMany && (
+          <Pressable onPress={onImportMany} style={styles.removeButton}>
+            <Icon ios="photo.stack" md="photo_library" size={18} />
+            <ThemedText type="small">Mehrere Fotos auf einmal importieren (bis zu 15)</ThemedText>
+          </Pressable>
+        )}
 
         {photo && !removing && (
           <View style={styles.cutoutRow}>

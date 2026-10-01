@@ -14,6 +14,7 @@ export default function AddItemScreen() {
       {toWishlist && <Stack.Screen options={{ title: 'Zur Wunschliste' }} />}
       <ItemForm
         wishlist={toWishlist}
+        onImportMany={toWishlist ? undefined : () => router.replace('/import-items')}
         onSubmit={async (values) => {
           await addItem({ ...values, wishlist: toWishlist || undefined });
           router.back();

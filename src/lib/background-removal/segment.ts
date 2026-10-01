@@ -8,6 +8,8 @@
  * stay close to the background's hue. Whatever is not reachable that way is the garment.
  */
 
+import { cropToAlpha } from './mask';
+
 export type RgbaImage = { data: Uint8Array | Uint8ClampedArray; width: number; height: number };
 
 /** busy-background: the border is not a plain surface; no-subject: nothing (or everything) stood out. */
@@ -178,39 +180,7 @@ export function removeBackgroundFromPixels(input: RgbaImage): SegmentResult {
   }
 
   // 6. Crop to the garment with a small margin.
-  let minX = w;
-  let minY = h;
-  let maxX = -1;
-  let maxY = -1;
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      if (!alpha[y * w + x]) continue;
-      if (x < minX) minX = x;
-      if (x > maxX) maxX = x;
-      if (y < minY) minY = y;
-      if (y > maxY) maxY = y;
-    }
-  }
-  const margin = Math.round(Math.max(maxX - minX, maxY - minY) * 0.04);
-  minX = Math.max(0, minX - margin);
-  minY = Math.max(0, minY - margin);
-  maxX = Math.min(w - 1, maxX + margin);
-  maxY = Math.min(h - 1, maxY + margin);
-
-  const outW = maxX - minX + 1;
-  const outH = maxY - minY + 1;
-  const out = new Uint8Array(outW * outH * 4);
-  for (let y = 0; y < outH; y++) {
-    for (let x = 0; x < outW; x++) {
-      const src = (y + minY) * w + (x + minX);
-      const o = (y * outW + x) * 4;
-      out[o] = data[src * 4];
-      out[o + 1] = data[src * 4 + 1];
-      out[o + 2] = data[src * 4 + 2];
-      out[o + 3] = alpha[src];
-    }
-  }
-  return { ok: true, image: { data: out, width: outW, height: outH } };
+  return { ok: true, image: cropToAlpha(data, w, h, alpha) };
 }
 
 const invert = (mask: Uint8Array) => mask.map((v) => (v ? 0 : 1));
