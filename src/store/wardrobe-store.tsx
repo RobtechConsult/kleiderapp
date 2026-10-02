@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useRef, useState, type ReactNode 
 
 import { deletePhoto, loadWardrobe, persistPhoto, saveWardrobe, type PersistedWardrobe } from '@/lib/persistence';
 import { fromDayKey, type DayKey } from '@/lib/dates';
+import { emptyMeta, entries, mergeWardrobes, trackChanges, type MergeSummary, type SyncMeta } from '@/lib/sync';
 import type { WeatherLocation } from '@/lib/weather';
 import type { Calendar, ClothingItem, Outfit, Trip } from '@/types/wardrobe';
 
@@ -52,6 +53,12 @@ type WardrobeState = {
   snapshot: () => PersistedWardrobe;
   /** Replaces the whole wardrobe, e.g. with a backup (photos as data URLs). */
   restore: (data: PersistedWardrobe) => Promise<void>;
+  /** What merging another device's sync file would change, without changing anything. */
+  previewMerge: (remote: PersistedWardrobe) => MergeSummary;
+  /** Merges another device's sync file in: newer changes and deletions win. */
+  merge: (remote: PersistedWardrobe, device: string) => Promise<MergeSummary>;
+  /** Last time a sync file was merged in. */
+  lastSync?: SyncMeta['lastSync'];
 };
 
 /** Items needed before personal styling unlocks (onboarding goal on the start screen). */
@@ -73,8 +80,18 @@ export function WardrobeProvider({ children }: { children: ReactNode }) {
   /** True if loading failed – then saving could overwrite data we couldn't read. */
   const [loadFailed, setLoadFailed] = useState(false);
   const saveCount = useRef(0);
+  // Change tracking for sync: the state at the last save, and the change times so far.
+  const syncMeta = useRef<SyncMeta>(emptyMeta());
+  const savedEntries = useRef(new Map<string, object>());
+  const [lastSync, setLastSync] = useState<SyncMeta['lastSync']>();
 
-  const apply = (data: PersistedWardrobe) => {
+  /** Shows new data. `meta` set: the data comes with its own change times (load, backup, merge). */
+  const apply = (data: PersistedWardrobe, meta?: SyncMeta) => {
+    if (meta) {
+      syncMeta.current = meta;
+      savedEntries.current = entries(data);
+      setLastSync(meta.lastSync);
+    }
     setItems(data.items);
     setOutfits(data.outfits);
     setCalendar(data.calendar ?? {});
@@ -84,7 +101,7 @@ export function WardrobeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     loadWardrobe()
-      .then((data) => data && apply(data))
+      .then((data) => data && apply(data, data.sync ?? emptyMeta()))
       .catch((e) => {
         console.warn('Could not load wardrobe', e);
         setLoadFailed(true);
@@ -93,13 +110,30 @@ export function WardrobeProvider({ children }: { children: ReactNode }) {
       .finally(() => setReady(true));
   }, []);
 
-  const snapshot = (): PersistedWardrobe => ({ version: 1, items: allItems, outfits, calendar, trips, weatherLocation });
+  /** Brings the change times up to date with the given state. */
+  const trackState = (state: Parameters<typeof entries>[0]) => {
+    const now = entries(state);
+    syncMeta.current = trackChanges(syncMeta.current, savedEntries.current, now, new Date().toISOString());
+    savedEntries.current = now;
+    return syncMeta.current;
+  };
+
+  const snapshot = (): PersistedWardrobe => ({
+    version: 1,
+    items: allItems,
+    outfits,
+    calendar,
+    trips,
+    weatherLocation,
+    sync: trackState({ items: allItems, outfits, calendar, trips }),
+  });
 
   // Save after every change, but never before loading finished (would overwrite the file).
   useEffect(() => {
     if (!ready || loadFailed) return;
     const count = ++saveCount.current;
-    saveWardrobe({ version: 1, items: allItems, outfits, calendar, trips, weatherLocation })
+    const sync = trackState({ items: allItems, outfits, calendar, trips });
+    saveWardrobe({ version: 1, items: allItems, outfits, calendar, trips, weatherLocation, sync })
       .then(() => count === saveCount.current && setSaveError(undefined))
       .catch((e) => {
         console.warn('Could not save wardrobe', e);
@@ -121,6 +155,27 @@ export function WardrobeProvider({ children }: { children: ReactNode }) {
     ready,
     saveError,
     snapshot,
+    lastSync,
+    previewMerge: (remote) => mergeWardrobes(snapshot(), remote, syncMeta.current).summary,
+    merge: async (remote, device) => {
+      const local = snapshot();
+      const { data, meta, summary } = mergeWardrobes(local, remote, syncMeta.current);
+      // Store photos of entries taken from the other device first; failure changes nothing.
+      const stamp = Date.now();
+      const localPhotos = new Map(local.items.map((i) => [i.id, i.imageUri]));
+      const items = await Promise.all(
+        data.items.map(async (i) =>
+          i.imageUri && i.imageUri !== localPhotos.get(i.id)
+            ? { ...i, imageUri: await persistPhoto(i.imageUri, `${i.id}-${stamp}`) }
+            : i,
+        ),
+      );
+      const kept = new Set(items.map((i) => i.imageUri));
+      local.items.forEach((i) => !kept.has(i.imageUri) && deletePhoto(i.imageUri));
+      const merged = { version: 1 as const, ...data, items };
+      apply(merged, { ...meta, lastSync: { at: new Date().toISOString(), device } });
+      return summary;
+    },
     restore: async (data) => {
       // Store all photos first, so a failure leaves the current wardrobe untouched.
       const stamp = Date.now();
@@ -131,7 +186,7 @@ export function WardrobeProvider({ children }: { children: ReactNode }) {
         })),
       );
       allItems.forEach((i) => deletePhoto(i.imageUri));
-      apply({ ...data, items: restored });
+      apply({ ...data, items: restored }, { ...(data.sync ?? emptyMeta()), deviceId: syncMeta.current.deviceId });
     },
     items,
     wishlist: allItems.filter((i) => i.wishlist),

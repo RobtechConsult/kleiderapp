@@ -43,17 +43,21 @@ export default function ProfileScreen() {
       <View style={styles.section}>
         <ThemedText type="smallBold">Einstellungen</ThemedText>
         <ThemedView type="backgroundElement" style={styles.card}>
+          <Pressable onPress={() => router.push('/sync')} style={styles.row}>
+            <ThemedText type="small">Konto & Synchronisierung</ThemedText>
+            <ThemedText type="small" themeColor="textSecondary">
+              Per Datei
+            </ThemedText>
+          </Pressable>
           <Pressable onPress={() => router.push('/location')} style={styles.row}>
             <ThemedText type="small">Standort für Wetter</ThemedText>
             <ThemedText type="small" themeColor="textSecondary">
               {weatherLocation?.name ?? 'Nicht gewählt'}
             </ThemedText>
           </Pressable>
-          {['Konto & Synchronisierung', 'Mitteilungen'].map((label) => (
-            <Pressable key={label} onPress={() => comingSoon(label)}>
-              <ThemedText type="small">{label}</ThemedText>
-            </Pressable>
-          ))}
+          <Pressable onPress={() => comingSoon('Mitteilungen')}>
+            <ThemedText type="small">Mitteilungen</ThemedText>
+          </Pressable>
         </ThemedView>
       </View>
 
@@ -96,7 +100,7 @@ function DataSection() {
     if (text == null) return;
     let data;
     try {
-      data = parseBackup(text);
+      data = parseBackup(text).data;
     } catch (e) {
       showMessage('Import nicht möglich', e instanceof Error ? e.message : String(e));
       return;
@@ -158,7 +162,7 @@ function DataSection() {
           onPress={onExport}
         />
         <DataButton
-          label={busy === 'import' ? 'Wird wiederhergestellt …' : 'Sicherung importieren'}
+          label={busy === 'import' ? 'Wird wiederhergestellt …' : 'Sicherung wiederherstellen'}
           busy={busy === 'import'}
           disabled={!!busy}
           onPress={onImport}

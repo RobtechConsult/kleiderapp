@@ -40,6 +40,7 @@ export default function RootLayout() {
             <Stack.Screen name="stats" options={{ title: 'Stil-Statistiken' }} />
             <Stack.Screen name="location" options={{ title: 'Standort für Wetter', presentation: 'modal' }} />
             <Stack.Screen name="profile" options={{ title: 'Profil' }} />
+            <Stack.Screen name="sync" options={{ title: 'Konto & Synchronisierung' }} />
           </Stack>
           <StorageBanner />
         </View>

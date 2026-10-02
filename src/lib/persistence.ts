@@ -1,6 +1,7 @@
 import { Directory, File, Paths } from 'expo-file-system';
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 
+import type { SyncMeta } from '@/lib/sync';
 import type { WeatherLocation } from '@/lib/weather';
 import type { Calendar, ClothingItem, Outfit, Trip } from '@/types/wardrobe';
 
@@ -14,6 +15,8 @@ export type PersistedWardrobe = {
   trips?: Trip[];
   /** Place used for the weather forecast. */
   weatherLocation?: WeatherLocation;
+  /** Change times and deletions, for syncing between devices. Missing in older files. */
+  sync?: SyncMeta;
 };
 
 const root = new Directory(Paths.document, 'wardrobe');

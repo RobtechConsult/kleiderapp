@@ -50,11 +50,12 @@ src/
     wishlist.tsx         # Wunschliste
     stats.tsx            # Stil-Statistiken
     location.tsx         # Modal: Standort für das Wetter
-    profile.tsx          # Profil & Einstellungen
+    profile.tsx          # Profil & Einstellungen, Sicherung
+    sync.tsx             # Konto & Synchronisierung (Abgleich per Sync-Datei)
   components/            # UI-Bausteine (Tab-Leiste mit +-Menü, Header, Icon, Screen, …)
   constants/theme.ts     # Farben (hell/dunkel), Abstände, Fonts
   data/                  # Demo-Daten (Entdecken-Feed)
-  lib/                   # Speicherung (persistence.ts / .web.ts), Sicherung (backup*.ts), Dialoge, Datums-Helfer,
+  lib/                   # Speicherung (persistence.ts / .web.ts), Sicherung (backup*.ts), Sync (sync.ts), Dialoge, Datums-Helfer,
                          # item-filters.ts (Sortieren/Filtern), stats.ts (Statistiken),
                          # background-removal/ (Freistellen)
   store/                 # Zustand (Kleiderschrank & Outfits, React Context)
@@ -87,7 +88,8 @@ Die Oberfläche orientiert sich an Acloset: Tab-Leiste mit rundem **+** in der M
 - [x] Stil-Statistiken: Kennzahlen, meistgetragen, nach Kategorie/Farbe/Saison, nie und lange nicht getragen, Kosten pro Tragen
 
 ### Phase 3: KI-Stylist
-- [ ] Backend mit Konto und Sync (z. B. Supabase)
+- [x] Abgleich zwischen Geräten per Sync-Datei (ohne Konto)
+- [ ] Konto mit automatischem Sync über einen Server (z. B. Supabase)
 - [ ] Automatisches Tagging der Fotos (Kategorie, Farbe, Material) per Vision-Modell
 - [ ] Outfitvorschläge nach Wetter und Anlass
 - [ ] Stil-Chat
@@ -116,6 +118,7 @@ Alles bleibt auf dem Gerät, ein Konto braucht es nicht.
 - Fotos werden beim Speichern verkleinert (Web 1200 px, App 1600 px; JPEG), freigestellte Bilder behalten ihre Transparenz.
 - Schlägt das Speichern fehl (z. B. Speicher voll), erscheint unten ein roter Hinweis.
 - **Sicherung** (Profil → Daten & Sicherung): eine JSON-Datei mit allen Artikeln, Fotos, Outfits, Kalender und Packlisten. Im Web als Download, in der App über das Teilen-Menü. Beim Import wird nach Rückfrage alles ersetzt. So lassen sich die Daten auch zwischen Geräten (Web ↔ App) umziehen.
+- **Synchronisierung ohne Konto** (Profil → Konto & Synchronisierung): Ein Gerät teilt eine Sync-Datei (dasselbe Format wie die Sicherung), das andere liest sie ein. Anders als beim Wiederherstellen wird **zusammengeführt**: Jeder Artikel, jedes Outfit, jede Packliste und jeder Kalendertag hat einen Änderungszeitpunkt, Gelöschtes hinterlässt eine Löschmarke (`src/lib/sync.ts`). Pro Eintrag gewinnt die neuere Version bzw. Löschung; zweimal dieselbe Datei einlesen ändert nichts. Vorher zeigt die App, was sich ändert. Ein späterer Server-Sync kann dieselben Daten verwenden.
 - **iPhone im Browser:** Safari löscht Website-Daten nach 7 Tagen ohne Besuch. Als App auf dem Home-Bildschirm gilt das nicht – die App zeigt dazu einen Hinweis.
 
 ## Wetter
