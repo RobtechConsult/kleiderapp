@@ -18,3 +18,9 @@ export function confirmDestructive(title: string, message: string, action = 'Lö
     ]),
   );
 }
+
+/** Shows a short message with an OK button. */
+export function showMessage(title: string, message: string) {
+  if (Platform.OS === 'web') window.alert(`${title}\n\n${message}`);
+  else Alert.alert(title, message);
+}

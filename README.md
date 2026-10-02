@@ -54,7 +54,7 @@ src/
   components/            # UI-Bausteine (Tab-Leiste mit +-Menü, Header, Icon, Screen, …)
   constants/theme.ts     # Farben (hell/dunkel), Abstände, Fonts
   data/                  # Demo-Daten (Entdecken-Feed)
-  lib/                   # Speicherung (persistence.ts / .web.ts), Dialoge, Datums-Helfer,
+  lib/                   # Speicherung (persistence.ts / .web.ts), Sicherung (backup*.ts), Dialoge, Datums-Helfer,
                          # item-filters.ts (Sortieren/Filtern), stats.ts (Statistiken),
                          # background-removal/ (Freistellen)
   store/                 # Zustand (Kleiderschrank & Outfits, React Context)
@@ -73,7 +73,7 @@ Die Oberfläche orientiert sich an Acloset: Tab-Leiste mit rundem **+** in der M
 - [x] Hintergrund automatisch freistellen (eigener Algorithmus, siehe unten)
 - [x] Detailansicht: Favorit, "Heute getragen"-Zähler, Outfits mit diesem Artikel, Löschen
 - [x] Bearbeiten (Foto, Kategorie, Marke, Farbe, Saison)
-- [x] Lokale Speicherung: JSON + Fotos im App-Dokumentenordner (`expo-file-system`), im Web `localStorage`
+- [x] Lokale Speicherung (siehe unten), Sicherung exportieren/importieren im Profil
 - [x] Artikel löschen (lange drücken)
 - [x] Sortierung (6 Varianten) und Filter (Favoriten, nie getragen, Farbe, Saison, Marke) im Kleiderschrank
 - [x] Wunschliste mit Preis und Shop-Link, "Gekauft" verschiebt in den Kleiderschrank
@@ -106,6 +106,17 @@ Nach dem Aufnehmen oder Auswählen eines Fotos wird der Hintergrund automatisch 
 - Fällt das Modell aus (z. B. offline beim ersten Mal), nutzt auch die Web-Version den farbbasierten Algorithmus.
 - Modellwahl: Auf einem Testset mit Kleidung auf Ziegel, Kies, Gras, Holz und Stoff erreichte U²-Net-P im Schnitt 96 % Übereinstimmung (IoU) – genauso gut wie das 40× größere IS-Net, aber etwa 6× schneller.
 - Bewusst nicht verwendet: `@imgly/background-removal` (AGPL) und RMBG (nicht-kommerzielle Lizenz).
+
+## Speicherung
+
+Alles bleibt auf dem Gerät, ein Konto braucht es nicht.
+
+- **iOS/Android:** JSON und Fotos im App-Dokumentenordner (`expo-file-system`); das System löscht hier nichts.
+- **Web:** IndexedDB (`persistence.web.ts`), Fotos als eigene Einträge. Die App bittet den Browser per `navigator.storage.persist()`, die Daten nicht zu löschen. Ältere Daten aus `localStorage` werden beim ersten Start übernommen.
+- Fotos werden beim Speichern verkleinert (Web 1200 px, App 1600 px; JPEG), freigestellte Bilder behalten ihre Transparenz.
+- Schlägt das Speichern fehl (z. B. Speicher voll), erscheint unten ein roter Hinweis.
+- **Sicherung** (Profil → Daten & Sicherung): eine JSON-Datei mit allen Artikeln, Fotos, Outfits, Kalender und Packlisten. Im Web als Download, in der App über das Teilen-Menü. Beim Import wird nach Rückfrage alles ersetzt. So lassen sich die Daten auch zwischen Geräten (Web ↔ App) umziehen.
+- **iPhone im Browser:** Safari löscht Website-Daten nach 7 Tagen ohne Besuch. Als App auf dem Home-Bildschirm gilt das nicht – die App zeigt dazu einen Hinweis.
 
 ## Wetter
 

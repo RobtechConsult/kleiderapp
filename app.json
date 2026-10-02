@@ -47,7 +47,8 @@
         {
           "locationWhenInUsePermission": "Dein Standort wird nur für die Wettervorhersage und passende Outfitvorschläge verwendet."
         }
-      ]
+      ],
+      "expo-sharing"
     ],
     "experiments": {
       "typedRoutes": true,

@@ -1,6 +1,6 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 
-import { deletePhoto, loadWardrobe, persistPhoto, saveWardrobe } from '@/lib/persistence';
+import { deletePhoto, loadWardrobe, persistPhoto, saveWardrobe, type PersistedWardrobe } from '@/lib/persistence';
 import { fromDayKey, type DayKey } from '@/lib/dates';
 import type { WeatherLocation } from '@/lib/weather';
 import type { Calendar, ClothingItem, Outfit, Trip } from '@/types/wardrobe';
@@ -46,6 +46,12 @@ type WardrobeState = {
   itemsPlannedBetween: (start: DayKey, end: DayKey) => string[];
   weatherLocation?: WeatherLocation;
   setWeatherLocation: (location: WeatherLocation | undefined) => void;
+  /** Set while the last change could not be saved (storage full or unavailable). */
+  saveError?: string;
+  /** Everything that is saved, e.g. for a backup. */
+  snapshot: () => PersistedWardrobe;
+  /** Replaces the whole wardrobe, e.g. with a backup (photos as data URLs). */
+  restore: (data: PersistedWardrobe) => Promise<void>;
 };
 
 /** Items needed before personal styling unlocks (onboarding goal on the start screen). */
@@ -63,24 +69,45 @@ export function WardrobeProvider({ children }: { children: ReactNode }) {
   const [calendar, setCalendar] = useState<Calendar>({});
   const [trips, setTrips] = useState<Trip[]>([]);
   const [weatherLocation, setWeatherLocation] = useState<WeatherLocation>();
+  const [saveError, setSaveError] = useState<string>();
+  /** True if loading failed – then saving could overwrite data we couldn't read. */
+  const [loadFailed, setLoadFailed] = useState(false);
+  const saveCount = useRef(0);
+
+  const apply = (data: PersistedWardrobe) => {
+    setItems(data.items);
+    setOutfits(data.outfits);
+    setCalendar(data.calendar ?? {});
+    setTrips(data.trips ?? []);
+    setWeatherLocation(data.weatherLocation);
+  };
 
   useEffect(() => {
-    loadWardrobe().then((data) => {
-      if (data) {
-        setItems(data.items);
-        setOutfits(data.outfits);
-        setCalendar(data.calendar ?? {});
-        setTrips(data.trips ?? []);
-        setWeatherLocation(data.weatherLocation);
-      }
-      setReady(true);
-    });
+    loadWardrobe()
+      .then((data) => data && apply(data))
+      .catch((e) => {
+        console.warn('Could not load wardrobe', e);
+        setLoadFailed(true);
+        setSaveError('Der Speicher ist nicht verfügbar. Änderungen gehen beim Schließen verloren.');
+      })
+      .finally(() => setReady(true));
   }, []);
+
+  const snapshot = (): PersistedWardrobe => ({ version: 1, items: allItems, outfits, calendar, trips, weatherLocation });
 
   // Save after every change, but never before loading finished (would overwrite the file).
   useEffect(() => {
-    if (ready) saveWardrobe({ version: 1, items: allItems, outfits, calendar, trips, weatherLocation });
-  }, [ready, allItems, outfits, calendar, trips, weatherLocation]);
+    if (!ready || loadFailed) return;
+    const count = ++saveCount.current;
+    saveWardrobe({ version: 1, items: allItems, outfits, calendar, trips, weatherLocation })
+      .then(() => count === saveCount.current && setSaveError(undefined))
+      .catch((e) => {
+        console.warn('Could not save wardrobe', e);
+        if (count === saveCount.current) {
+          setSaveError('Speichern fehlgeschlagen – vermutlich ist der Speicher voll. Sichere deine Daten im Profil.');
+        }
+      });
+  }, [ready, loadFailed, allItems, outfits, calendar, trips, weatherLocation]);
 
   /** Drops calendar days whose outfit no longer exists. */
   const pruneCalendar = (remaining: Outfit[]) =>
@@ -92,6 +119,20 @@ export function WardrobeProvider({ children }: { children: ReactNode }) {
 
   const value: WardrobeState = {
     ready,
+    saveError,
+    snapshot,
+    restore: async (data) => {
+      // Store all photos first, so a failure leaves the current wardrobe untouched.
+      const stamp = Date.now();
+      const restored = await Promise.all(
+        data.items.map(async (i) => ({
+          ...i,
+          imageUri: i.imageUri ? await persistPhoto(i.imageUri, `${i.id}-${stamp}`) : undefined,
+        })),
+      );
+      allItems.forEach((i) => deletePhoto(i.imageUri));
+      apply({ ...data, items: restored });
+    },
     items,
     wishlist: allItems.filter((i) => i.wishlist),
     getItem: (id) => allItems.find((i) => i.id === id),

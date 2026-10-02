@@ -3,6 +3,7 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { AppHeader } from '@/components/app-header';
 import { Icon } from '@/components/icon';
+import { InstallHint } from '@/components/install-hint';
 import { ItemImage } from '@/components/item-tile';
 import { OutfitCollage } from '@/components/outfit-collage';
 import { WeatherCard } from '@/components/weather-card';
@@ -26,6 +27,7 @@ export default function StartScreen() {
         style={styles.grow}
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}>
+        <InstallHint dismissible />
         <TodayCard />
         <WeatherCard />
 
