@@ -49,6 +49,7 @@ src/
     import-items.tsx     # Modal: bis zu 15 Fotos auf einmal importieren
     wishlist.tsx         # Wunschliste
     stats.tsx            # Stil-Statistiken
+    location.tsx         # Modal: Standort für das Wetter
     profile.tsx          # Profil & Einstellungen
   components/            # UI-Bausteine (Tab-Leiste mit +-Menü, Header, Icon, Screen, …)
   constants/theme.ts     # Farben (hell/dunkel), Abstände, Fonts
@@ -82,7 +83,7 @@ Die Oberfläche orientiert sich an Acloset: Tab-Leiste mit rundem **+** in der M
 - [x] Outfit-Buch: Artikel zu Outfits kombinieren, speichern, löschen (lange drücken)
 - [x] Packliste: Reisen mit Zeitraum, Artikel aus geplanten Outfits übernehmen, abhaken, eigene Einträge
 - [x] Kalender: ein Outfit pro Tag planen, "Als getragen markieren" (zählt alle Artikel hoch), heute geplantes Outfit auf Start
-- [ ] Wetter am Standort für Outfitvorschläge (`expo-location` + Wetter-API)
+- [x] Wetter am Standort (GPS oder Ortssuche) mit täglichem Outfitvorschlag aus dem eigenen Kleiderschrank; Vorhersage im Kalender
 - [x] Stil-Statistiken: Kennzahlen, meistgetragen, nach Kategorie/Farbe/Saison, nie und lange nicht getragen, Kosten pro Tragen
 
 ### Phase 3: KI-Stylist
@@ -105,6 +106,12 @@ Nach dem Aufnehmen oder Auswählen eines Fotos wird der Hintergrund automatisch 
 - Fällt das Modell aus (z. B. offline beim ersten Mal), nutzt auch die Web-Version den farbbasierten Algorithmus.
 - Modellwahl: Auf einem Testset mit Kleidung auf Ziegel, Kies, Gras, Holz und Stoff erreichte U²-Net-P im Schnitt 96 % Übereinstimmung (IoU) – genauso gut wie das 40× größere IS-Net, aber etwa 6× schneller.
 - Bewusst nicht verwendet: `@imgly/background-removal` (AGPL) und RMBG (nicht-kommerzielle Lizenz).
+
+## Wetter
+
+- Daten von [Open-Meteo](https://open-meteo.com) (kein API-Schlüssel, Daten CC BY 4.0). **Kostenlos nur für nicht-kommerzielle Nutzung** – für eine kommerzielle Veröffentlichung braucht es einen Open-Meteo-API-Tarif (oder einen anderen Anbieter, `src/lib/weather.ts` ist die einzige Stelle).
+- Standort per GPS (`expo-location`) oder Ortssuche (Open-Meteo Geocoding); gespeichert mit den übrigen Daten.
+- Outfitvorschlag (`src/lib/outfit-suggestion.ts`): Tagestemperatur → passende Saisons, Jacke unter 18 °C oder bei Regen (ab 50 %), bevorzugt länger nicht getragene Teile; "Neu mischen" wechselt zwischen den Kandidaten, "Für heute planen" legt ein Outfit an und plant es im Kalender.
 
 ## Konfiguration
 

@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 
 import { deletePhoto, loadWardrobe, persistPhoto, saveWardrobe } from '@/lib/persistence';
 import { fromDayKey, type DayKey } from '@/lib/dates';
+import type { WeatherLocation } from '@/lib/weather';
 import type { Calendar, ClothingItem, Outfit, Trip } from '@/types/wardrobe';
 
 type NewItem = Omit<ClothingItem, 'id' | 'createdAt' | 'wearCount'>;
@@ -43,6 +44,8 @@ type WardrobeState = {
   togglePacked: (tripId: string, entryId: string) => void;
   /** Wardrobe items of all outfits planned in the calendar between two days (inclusive). */
   itemsPlannedBetween: (start: DayKey, end: DayKey) => string[];
+  weatherLocation?: WeatherLocation;
+  setWeatherLocation: (location: WeatherLocation | undefined) => void;
 };
 
 /** Items needed before personal styling unlocks (onboarding goal on the start screen). */
@@ -59,6 +62,7 @@ export function WardrobeProvider({ children }: { children: ReactNode }) {
   const [outfits, setOutfits] = useState<Outfit[]>([]);
   const [calendar, setCalendar] = useState<Calendar>({});
   const [trips, setTrips] = useState<Trip[]>([]);
+  const [weatherLocation, setWeatherLocation] = useState<WeatherLocation>();
 
   useEffect(() => {
     loadWardrobe().then((data) => {
@@ -67,6 +71,7 @@ export function WardrobeProvider({ children }: { children: ReactNode }) {
         setOutfits(data.outfits);
         setCalendar(data.calendar ?? {});
         setTrips(data.trips ?? []);
+        setWeatherLocation(data.weatherLocation);
       }
       setReady(true);
     });
@@ -74,8 +79,8 @@ export function WardrobeProvider({ children }: { children: ReactNode }) {
 
   // Save after every change, but never before loading finished (would overwrite the file).
   useEffect(() => {
-    if (ready) saveWardrobe({ version: 1, items: allItems, outfits, calendar, trips });
-  }, [ready, allItems, outfits, calendar, trips]);
+    if (ready) saveWardrobe({ version: 1, items: allItems, outfits, calendar, trips, weatherLocation });
+  }, [ready, allItems, outfits, calendar, trips, weatherLocation]);
 
   /** Drops calendar days whose outfit no longer exists. */
   const pruneCalendar = (remaining: Outfit[]) =>
@@ -175,6 +180,8 @@ export function WardrobeProvider({ children }: { children: ReactNode }) {
       );
       setCalendar((prev) => ({ ...prev, [day]: { ...entry, worn: true } }));
     },
+    weatherLocation,
+    setWeatherLocation,
     trips,
     addTrip: (trip) => {
       const id = newId();

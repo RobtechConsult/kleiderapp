@@ -1,5 +1,6 @@
 import { Directory, File, Paths } from 'expo-file-system';
 
+import type { WeatherLocation } from '@/lib/weather';
 import type { Calendar, ClothingItem, Outfit, Trip } from '@/types/wardrobe';
 
 export type PersistedWardrobe = {
@@ -10,6 +11,8 @@ export type PersistedWardrobe = {
   calendar?: Calendar;
   /** Missing in files saved before packing lists existed. */
   trips?: Trip[];
+  /** Place used for the weather forecast. */
+  weatherLocation?: WeatherLocation;
 };
 
 const root = new Directory(Paths.document, 'wardrobe');

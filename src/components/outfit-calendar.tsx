@@ -9,8 +9,10 @@ import { ThemedText } from './themed-text';
 import { ThemedView } from './themed-view';
 
 import { Spacing } from '@/constants/theme';
+import { useForecast } from '@/hooks/use-forecast';
 import { useTheme } from '@/hooks/use-theme';
 import { formatDayLong, MONTHS, monthGrid, toDayKey, todayKey, WEEKDAYS_SHORT, type DayKey } from '@/lib/dates';
+import { describeWeather, formatTemp } from '@/lib/weather';
 import { useWardrobe } from '@/store/wardrobe-store';
 
 /** Month view with one planned outfit per day and a panel for the selected day. */
@@ -138,7 +140,10 @@ function DayPanel({ day, isPastOrToday }: { day: DayKey; isPastOrToday: boolean 
 
   return (
     <ThemedView type="backgroundElement" style={styles.panel}>
-      <ThemedText type="smallBold">{formatDayLong(day)}</ThemedText>
+      <View style={styles.panelHeader}>
+        <ThemedText type="smallBold">{formatDayLong(day)}</ThemedText>
+        <DayWeather day={day} />
+      </View>
 
       {outfit ? (
         <View style={styles.planned}>
@@ -187,6 +192,23 @@ function DayPanel({ day, isPastOrToday }: { day: DayKey; isPastOrToday: boolean 
         </Pressable>
       )}
     </ThemedView>
+  );
+}
+
+/** Forecast for the day, if it is within the next 7 days and a location is set. */
+function DayWeather({ day }: { day: DayKey }) {
+  const theme = useTheme();
+  const { forecast } = useForecast();
+  const f = forecast?.days.find((d) => d.date === day);
+  if (!f) return null;
+  const weather = describeWeather(f.code);
+  return (
+    <View style={styles.dayWeather} accessible accessibilityLabel={`${weather.label}, ${formatTemp(f.max)} bis ${formatTemp(f.min)}`}>
+      <Icon ios={weather.icon.ios} md={weather.icon.md} size={18} color={theme.accent} />
+      <ThemedText type="small" themeColor="textSecondary">
+        {formatTemp(f.max)} / {formatTemp(f.min)}
+      </ThemedText>
+    </View>
   );
 }
 
@@ -269,6 +291,17 @@ const styles = StyleSheet.create({
     borderRadius: Spacing.three,
     padding: Spacing.three,
     gap: Spacing.three,
+  },
+  panelHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing.two,
+  },
+  dayWeather: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.one,
   },
   planned: {
     flexDirection: 'row',

@@ -12,7 +12,7 @@ import { comingSoon } from '@/lib/dialogs';
 
 export default function ProfileScreen() {
   const theme = useTheme();
-  const { items, outfits } = useWardrobe();
+  const { items, outfits, weatherLocation } = useWardrobe();
   const byCategory = Categories.map((c) => ({
     category: c,
     count: items.filter((i) => i.category === c).length,
@@ -39,7 +39,13 @@ export default function ProfileScreen() {
       <View style={styles.section}>
         <ThemedText type="smallBold">Einstellungen</ThemedText>
         <ThemedView type="backgroundElement" style={styles.card}>
-          {['Konto & Synchronisierung', 'Standort für Wetter', 'Mitteilungen'].map((label) => (
+          <Pressable onPress={() => router.push('/location')} style={styles.row}>
+            <ThemedText type="small">Standort für Wetter</ThemedText>
+            <ThemedText type="small" themeColor="textSecondary">
+              {weatherLocation?.name ?? 'Nicht gewählt'}
+            </ThemedText>
+          </Pressable>
+          {['Konto & Synchronisierung', 'Mitteilungen'].map((label) => (
             <Pressable key={label} onPress={() => comingSoon(label)}>
               <ThemedText type="small">{label}</ThemedText>
             </Pressable>

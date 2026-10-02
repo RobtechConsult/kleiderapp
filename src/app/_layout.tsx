@@ -36,6 +36,7 @@ export default function RootLayout() {
           <Stack.Screen name="import-items" options={{ title: 'Artikel importieren', presentation: 'modal' }} />
           <Stack.Screen name="wishlist" options={{ title: 'Wunschliste' }} />
           <Stack.Screen name="stats" options={{ title: 'Stil-Statistiken' }} />
+          <Stack.Screen name="location" options={{ title: 'Standort für Wetter', presentation: 'modal' }} />
           <Stack.Screen name="profile" options={{ title: 'Profil' }} />
         </Stack>
       </WardrobeProvider>

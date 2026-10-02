@@ -41,6 +41,12 @@
           "photosPermission": "Fotos aus deiner Mediathek werden als Kleidungsstücke importiert.",
           "cameraPermission": "Die Kamera wird genutzt, um Kleidungsstücke zu fotografieren."
         }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Dein Standort wird nur für die Wettervorhersage und passende Outfitvorschläge verwendet."
+        }
       ]
     ],
     "experiments": {

@@ -5,6 +5,7 @@ import { AppHeader } from '@/components/app-header';
 import { Icon } from '@/components/icon';
 import { ItemImage } from '@/components/item-tile';
 import { OutfitCollage } from '@/components/outfit-collage';
+import { WeatherCard } from '@/components/weather-card';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -26,6 +27,7 @@ export default function StartScreen() {
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}>
         <TodayCard />
+        <WeatherCard />
 
         <View>
           <ThemedText type="smallBold" style={styles.heading}>
