@@ -13,6 +13,7 @@ import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { confirmDestructive } from '@/lib/dialogs';
 import { formatPrice } from '@/lib/format';
+import { costPerWear } from '@/lib/stats';
 import { useWardrobe } from '@/store/wardrobe-store';
 import { CategoryLabels, SeasonLabels, Seasons, type Outfit } from '@/types/wardrobe';
 
@@ -143,6 +144,11 @@ export default function ItemDetailScreen() {
           <Row label="Saison">
             {seasons.length ? seasons.map((s) => SeasonLabels[s]).join(', ') : 'Ganzjährig'}
           </Row>
+          {!item.wishlist && item.price !== undefined && (
+            <Row label="Preis">
+              {`${formatPrice(item.price)} · ${formatPrice(costPerWear(item))} pro Tragen`}
+            </Row>
+          )}
           <Row label="Hinzugefügt">{formatDate(item.createdAt)}</Row>
         </ThemedView>
 

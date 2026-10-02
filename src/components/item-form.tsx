@@ -8,6 +8,7 @@ import { Icon, type IconProps } from './icon';
 import { ThemedText } from './themed-text';
 import { ThemedView } from './themed-view';
 
+import { GarmentColors } from '@/constants/garment-colors';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { preloadBackgroundRemoval, removeBackground } from '@/lib/background-removal';
@@ -22,7 +23,6 @@ import {
   type Season,
 } from '@/types/wardrobe';
 
-const COLORS = ['#1C1C1E', '#FFFFFF', '#8E8E93', '#1F2A44', '#5B7FA6', '#2E8B57', '#A67B5B', '#E8DCC8', '#C0392B', '#F4A7B9'];
 
 const PICKER_OPTIONS: ImagePicker.ImagePickerOptions = {
   mediaTypes: ['images'],
@@ -132,7 +132,7 @@ export function ItemForm({ initial, wishlist, onImportMany, onSubmit }: ItemForm
         imageUri,
         color,
         seasons,
-        price: wishlist && Number.isFinite(parsedPrice) ? parsedPrice : undefined,
+        price: Number.isFinite(parsedPrice) ? parsedPrice : undefined,
         link: wishlist ? link.trim() || undefined : undefined,
       });
     } catch (e) {
@@ -242,39 +242,40 @@ export function ItemForm({ initial, wishlist, onImportMany, onSubmit }: ItemForm
           />
         </Field>
 
+        <Field label="Preis (€)">
+          <TextInput
+            value={price}
+            onChangeText={setPrice}
+            placeholder="z. B. 49,90"
+            placeholderTextColor={theme.textSecondary}
+            keyboardType="decimal-pad"
+            style={[styles.input, { color: theme.text, backgroundColor: theme.backgroundElement }]}
+          />
+        </Field>
+
         {wishlist && (
-          <>
-            <Field label="Preis (€)">
-              <TextInput
-                value={price}
-                onChangeText={setPrice}
-                placeholder="z. B. 49,90"
-                placeholderTextColor={theme.textSecondary}
-                keyboardType="decimal-pad"
-                style={[styles.input, { color: theme.text, backgroundColor: theme.backgroundElement }]}
-              />
-            </Field>
-            <Field label="Link zum Shop">
-              <TextInput
-                value={link}
-                onChangeText={setLink}
-                placeholder="https://…"
-                placeholderTextColor={theme.textSecondary}
-                keyboardType="url"
-                autoCapitalize="none"
-                autoCorrect={false}
-                style={[styles.input, { color: theme.text, backgroundColor: theme.backgroundElement }]}
-              />
-            </Field>
-          </>
+          <Field label="Link zum Shop">
+            <TextInput
+              value={link}
+              onChangeText={setLink}
+              placeholder="https://…"
+              placeholderTextColor={theme.textSecondary}
+              keyboardType="url"
+              autoCapitalize="none"
+              autoCorrect={false}
+              style={[styles.input, { color: theme.text, backgroundColor: theme.backgroundElement }]}
+            />
+          </Field>
         )}
 
         <Field label="Farbe">
           <View style={styles.chips}>
-            {COLORS.map((c) => (
+            {GarmentColors.map(({ hex: c, name }) => (
               <Pressable
                 key={c}
-                accessibilityLabel={`Farbe ${c}`}
+                accessibilityRole="radio"
+                accessibilityState={{ checked: color === c }}
+                accessibilityLabel={`Farbe ${name}`}
                 onPress={() => setColor(color === c ? undefined : c)}
                 style={[
                   styles.color,

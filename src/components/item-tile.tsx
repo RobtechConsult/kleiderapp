@@ -15,7 +15,7 @@ export function ItemImage({ item, style }: { item: ClothingItem; style?: StylePr
       {item.imageUri ? (
         <Image source={{ uri: item.imageUri }} style={StyleSheet.absoluteFill} contentFit="contain" />
       ) : item.color ? (
-        <View style={[styles.swatch, { backgroundColor: item.color }]} />
+        <View style={[styles.swatch, { backgroundColor: item.color, borderColor: theme.textSecondary }]} />
       ) : (
         <Icon ios="tshirt" md="checkroom" size={36} color={theme.textSecondary} />
       )}
@@ -33,5 +33,7 @@ const styles = StyleSheet.create({
     width: '60%',
     height: '60%',
     borderRadius: 8,
+    // Keeps white swatches visible on light and black ones on dark backgrounds.
+    borderWidth: StyleSheet.hairlineWidth,
   },
 });

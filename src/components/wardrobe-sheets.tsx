@@ -7,6 +7,7 @@ import { PrimaryButton } from './primary-button';
 import { ThemedText } from './themed-text';
 import { ThemedView } from './themed-view';
 
+import { colorName } from '@/constants/garment-colors';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import {
@@ -122,7 +123,7 @@ function FilterSheetContent({ visible, items, category, sort, value, onApply, on
                   key={c}
                   accessibilityRole="checkbox"
                   accessibilityState={{ checked: active }}
-                  accessibilityLabel={`Farbe ${c}`}
+                  accessibilityLabel={`Farbe ${colorName(c)}`}
                   onPress={() => toggleIn('colors', c)}
                   style={[
                     styles.swatch,

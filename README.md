@@ -48,12 +48,13 @@ src/
     item/[id]/edit.tsx   # Modal: Artikel bearbeiten (gleiches Formular wie Hinzufügen)
     import-items.tsx     # Modal: bis zu 15 Fotos auf einmal importieren
     wishlist.tsx         # Wunschliste
+    stats.tsx            # Stil-Statistiken
     profile.tsx          # Profil & Einstellungen
   components/            # UI-Bausteine (Tab-Leiste mit +-Menü, Header, Icon, Screen, …)
   constants/theme.ts     # Farben (hell/dunkel), Abstände, Fonts
   data/                  # Demo-Daten (Entdecken-Feed)
   lib/                   # Speicherung (persistence.ts / .web.ts), Dialoge, Datums-Helfer,
-                         # item-filters.ts (Sortieren/Filtern),
+                         # item-filters.ts (Sortieren/Filtern), stats.ts (Statistiken),
                          # background-removal/ (Freistellen)
   store/                 # Zustand (Kleiderschrank & Outfits, React Context)
   types/wardrobe.ts      # Datenmodell: ClothingItem, Outfit, Calendar, Trip, Kategorien
@@ -82,7 +83,7 @@ Die Oberfläche orientiert sich an Acloset: Tab-Leiste mit rundem **+** in der M
 - [x] Packliste: Reisen mit Zeitraum, Artikel aus geplanten Outfits übernehmen, abhaken, eigene Einträge
 - [x] Kalender: ein Outfit pro Tag planen, "Als getragen markieren" (zählt alle Artikel hoch), heute geplantes Outfit auf Start
 - [ ] Wetter am Standort für Outfitvorschläge (`expo-location` + Wetter-API)
-- [ ] Stil-Statistiken (Tragezähler ist schon da)
+- [x] Stil-Statistiken: Kennzahlen, meistgetragen, nach Kategorie/Farbe/Saison, nie und lange nicht getragen, Kosten pro Tragen
 
 ### Phase 3: KI-Stylist
 - [ ] Backend mit Konto und Sync (z. B. Supabase)

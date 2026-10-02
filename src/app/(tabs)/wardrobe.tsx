@@ -18,7 +18,7 @@ import { comingSoon, confirmDestructive } from '@/lib/dialogs';
 
 const QUICK_ACTIONS: { label: string; icon: Pick<IconProps, 'ios' | 'md'>; onPress?: () => void }[] = [
   { label: 'Artikel importieren', icon: { ios: 'square.and.arrow.down', md: 'download' }, onPress: () => router.push('/import-items') },
-  { label: 'Stil-Statistiken', icon: { ios: 'chart.line.uptrend.xyaxis', md: 'trending_up' } },
+  { label: 'Stil-Statistiken', icon: { ios: 'chart.line.uptrend.xyaxis', md: 'trending_up' }, onPress: () => router.push('/stats') },
   { label: 'Wunschliste', icon: { ios: 'heart', md: 'favorite' }, onPress: () => router.push('/wishlist') },
   { label: 'Verschönern', icon: { ios: 'wand.and.stars', md: 'auto_fix_high' } },
   { label: 'Kleiderschrank teilen', icon: { ios: 'square.and.arrow.up', md: 'ios_share' } },
